@@ -15,3 +15,4 @@ cat ${BASE_DIR}/data/kiwoom-exported-transactions/year-2024-<YOUR_ACCOUNT_0001_H
 # <YOUR_ACCOUNT_0002_HERE>
 cat ${BASE_DIR}/data/kiwoom-exported-transactions/year-2023-<YOUR_ACCOUNT_0002_HERE>.csv > ${BASE_DIR}/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0002_HERE>.csv
 cat ${BASE_DIR}/data/kiwoom-exported-transactions/year-2024-<YOUR_ACCOUNT_0002_HERE>.csv >> ${BASE_DIR}/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0002_HERE>.csv
+

@@ -6,3 +6,4 @@ python ${BASE_DIR}/tools/show-euc-kr-doc.py ${BASE_DIR}/data/kiwoom-exported-tra
 python ${BASE_DIR}/tools/show-euc-kr-doc.py ${BASE_DIR}/data/kiwoom-exported-transactions/year-2022-<YOUR_ACCOUNT_0000_HERE>.csv
 python ${BASE_DIR}/tools/show-euc-kr-doc.py ${BASE_DIR}/data/kiwoom-exported-transactions/year-2023-<YOUR_ACCOUNT_0000_HERE>.csv
 python ${BASE_DIR}/tools/show-euc-kr-doc.py ${BASE_DIR}/data/kiwoom-exported-transactions/year-2024-<YOUR_ACCOUNT_0000_HERE>.csv
+

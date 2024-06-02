@@ -12,3 +12,4 @@ echo
 cat ${BASE_DIR}/test/mask/test_0000.txt
 echo
 cat ${BASE_DIR}/test/mask/test_0001.txt
+
