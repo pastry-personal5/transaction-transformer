@@ -3,3 +3,4 @@ mariadb_exporter:
   port: <YOUR_DATABASE_PORT_HERE>
   user: <YOUR_DATABASE_USER_HERE>
   password: <YOUR_DATABASE_PASSWORD_HERE>
+
