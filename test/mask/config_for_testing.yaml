@@ -1,0 +1,21 @@
+masks:
+  - files:
+      - test/mask/test_0000.txt
+    replacement:
+      - after: <YOUR_ACCOUNT_0000_HERE>
+        before: 1111-2222
+      - after: <YOUR_ACCOUNT_0001_HERE>
+        before: 3333-4444
+      - after: <YOUR_ACCOUNT_0002_HERE>
+        before: 5555-6666
+  - files:
+      - test/mask/test_0001.txt
+    replacement:
+      - after: <YOUR_DATABASE_HOST_IP_ADDRESS_HERE>
+        before: 192.168.0.1
+      - after: <YOUR_DATABASE_PORT_HERE>
+        before: '1234'
+      - after: <YOUR_DATABASE_USER_HERE>
+        before: uu
+      - after: <YOUR_DATABASE_PASSWORD_HERE>
+        before: pp
