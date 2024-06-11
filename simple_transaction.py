@@ -1,3 +1,6 @@
+import datetime
+
+
 class SimpleTransaction():
     # Constants
     TYPE_SELL = 0
@@ -13,10 +16,7 @@ class SimpleTransaction():
     symbol = ''
     type = TYPE_SELL  # It's either |TYPE_SELL| or |TYPE_BUY|.
 
-    def __init__(self):
-        pass
-
-    def __init__(self, symbol, type, amount, open_price, open_date, commission):
+    def __init__(self, symbol='', type=TYPE_BUY, amount=0.0, open_price=0.0, open_date=datetime.date(1970, 1, 1), commission=0.0):
         self.symbol = symbol
         self.type = type
         self.amount = amount
