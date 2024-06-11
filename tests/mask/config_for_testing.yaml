@@ -1,6 +1,6 @@
 masks:
   - files:
-      - test/mask/test_0000.txt
+      - tests/mask/test_0000.txt
     replacement:
       - after: <YOUR_ACCOUNT_0000_HERE>
         before: 1111-2222
@@ -9,7 +9,7 @@ masks:
       - after: <YOUR_ACCOUNT_0002_HERE>
         before: 5555-6666
   - files:
-      - test/mask/test_0001.txt
+      - tests/mask/test_0001.txt
     replacement:
       - after: <YOUR_DATABASE_HOST_IP_ADDRESS_HERE>
         before: 192.168.0.1
