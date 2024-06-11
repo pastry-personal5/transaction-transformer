@@ -16,6 +16,14 @@ class SimpleTransaction():
     def __init__(self):
         pass
 
+    def __init__(self, symbol, type, amount, open_price, open_date, commission):
+        self.symbol = symbol
+        self.type = type
+        self.amount = amount
+        self.open_price = open_price
+        self.open_date = open_date
+        self.commission = commission
+
     def __str__(self):
         type_as_string = self.get_transaction_type_string()
         return f'symbol({self.symbol}) type({type_as_string}) open_price({self.open_price}) amount({self.amount}) commission({self.commission}) open_date({self.open_date})'
