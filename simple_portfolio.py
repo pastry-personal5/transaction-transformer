@@ -61,7 +61,7 @@ class SimplePortfolio():
         open_date = transaction.open_date
 
         if symbol in self.p:
-            self.p[symbol]['amount'] = amount  # float
+            self.p[symbol]['amount'] += amount  # float
             self.p[symbol]['open_price'] = open_price  # float
         else:
             self.p[symbol] = {}
