@@ -26,7 +26,7 @@ pycparser==2.22
 pylint==3.2.2
 PySocks==1.7.1
 PyYAML==6.0.1
-requests==2.32.0
+requests==2.32.3
 rsa==4.9
 selenium==4.19.0
 shellcheck_py==0.10.0.1
