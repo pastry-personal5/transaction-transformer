@@ -3,6 +3,7 @@ from datetime import date
 from simple_transaction import SimpleTransaction
 from simple_portfolio import SimplePortfolio
 
+
 class TestSimplePortfolio(unittest.TestCase):
     def setUp(self):
         self.portfolio = SimplePortfolio()
@@ -32,6 +33,7 @@ class TestSimplePortfolio(unittest.TestCase):
         transaction = SimpleTransaction('AAPL', SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION, 5, 160.0, date(2024, 6, 14), 0.0)
         self.portfolio.record_stock_split_merge_deletion(transaction)
         self.assertEqual(self.portfolio.p['AAPL']['amount'], 5)
+
 
 if __name__ == '__main__':
     unittest.main()
