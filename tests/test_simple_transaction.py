@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from simple_transaction import SimpleTransaction  # Adjust this import statement based on your module structure
+from simple_transaction import SimpleTransaction
 
 
 class TestSimpleTransaction(unittest.TestCase):
