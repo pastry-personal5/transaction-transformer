@@ -10,11 +10,11 @@ class SimplePortfolio():
 
     def __str__(self):
         to_return = ''
-        for key in self.p.keys():
-            amount = self.p[key]['amount']
-            open_price = self.p[key]['open_price']
-            open_date = self.p[key]['open_date']
-            to_return += f'symbol({key}) amount({amount}) open_price({open_price}) open_date({open_date})'
+        for symbol in self.p:
+            amount = self.p[symbol]['amount']
+            open_price = self.p[symbol]['open_price']
+            open_date = self.p[symbol]['open_date']
+            to_return += f'symbol({symbol}) amount({amount}) open_price({open_price}) open_date({open_date})'
             to_return += '\n'
         return to_return
 

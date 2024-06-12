@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+This module interprets command from a user, the do the job.
+
 
 * Please note that mandatory fields are:
 ** Symbol/ISIN
@@ -61,7 +63,7 @@ def convert_kr_date_string_to_date(src):
 
 
 def convert_python_date_to_us_date(src: datetime.date):
-    dst = f'%02d/%02d/%04d' % (src.month, src.day, src.year)
+    dst = '%02d/%02d/%04d' % (src.month, src.day, src.year)
     return dst
 
 
@@ -83,7 +85,7 @@ def convert_kr_date_to_us_date(src):
     yyyy = int(result.group(1))
     mm = int(result.group(2))
     dd = int(result.group(3))
-    dst = f'%02d/%02d/%04d' % (mm, dd, yyyy)
+    dst = '%02d/%02d/%04d' % (mm, dd, yyyy)
     return dst
 
 
@@ -122,17 +124,15 @@ def merge_simple_transactions(first: list, second: list) -> list:
             f_date = f.open_date
             if f_date > current_date:
                 break
-            else:
-                transactions_of_current_date.append(f)
-                i += 1
+            transactions_of_current_date.append(f)
+            i += 1
         while j < len_second:
             s = second[j]
             s_date = s.open_date
             if s_date > current_date:
                 break
-            else:
-                transactions_of_current_date.append(s)
-                j += 1
+            transactions_of_current_date.append(s)
+            j += 1
         append_transactions_of_current_date(merged, transactions_of_current_date)
         current_date += datetime.timedelta(days=1)
 
@@ -153,7 +153,7 @@ def build_list_of_simple_transactions(config_filepath):
             transaction_file.close()
         except IOError as e:
             print('[ERROR] IOError.', e)
-            print(f'[ERROR] Transaction filepath was: %s' % transaction_filepath)
+            print('[ERROR] Transaction filepath was: %s' % transaction_filepath)
 
         merged = primary_list.copy()
 
@@ -171,11 +171,11 @@ def build_list_of_simple_transactions(config_filepath):
                 added_transaction_file.close()
             except IOError as e:
                 print('[ERROR] IOError.', e)
-                print(f'[ERROR] Transaction filepath was: %s' % transaction_filepath)
+                print('[ERROR] Transaction filepath was: %s' % transaction_filepath)
         config_file.close()
     except IOError as e:
         print('[ERROR] IOError.', e)
-        print(f'[ERROR] Configuration filepath was: %s' % config_filepath)
+        print('[ERROR] Configuration filepath was: %s' % config_filepath)
         return None
     return merged
 
@@ -193,10 +193,10 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     STRING_FOR_TYPE_SELL = '매도'
     STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION = '액면분할병합입고'
     STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION = '액면분할병합출고'
-    STRING_FOR_TYPE_STOCK_INSERTION = '대체입고'
-    STRING_FOR_TYPE_STOCK_DELETION = '대체출고'
+    # STRING_FOR_TYPE_STOCK_INSERTION = '대체입고'
+    # STRING_FOR_TYPE_STOCK_DELETION = '대체출고'
     reader = csv.reader(input_stream, delimiter=',')
-    FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
+    # FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
     num_row_read = 0
     transactions_of_current_date = None
     current_date = None
@@ -205,7 +205,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
         if len(input_row) <= 1:
             print(f'[WARNING] Tow short row. Expected %d. Got (%s)' % (EXPECTED_COLUMN_LENGTH, input_row))
             continue
-        elif len(input_row) != EXPECTED_COLUMN_LENGTH:
+        if len(input_row) != EXPECTED_COLUMN_LENGTH:
             print(f'[WARNING] A number of column in a row is not %d. Got %d. Let\'s process it.' % (EXPECTED_COLUMN_LENGTH, len(input_row)))
             print(input_row)
         try:
@@ -292,13 +292,13 @@ def do_investing_dot_com_file_export_to_stream(output_file, portfolio: SimplePor
             output_row['Open Date'] = convert_python_date_to_us_date(p['open_date'])
             output_row['Symbol/ISIN'] = key
             output_row['Amount'] = p['amount']
-            output_row['Open Price'] = f'%.4f' % p['open_price']
-            output_row['Commission'] = f'%.2f' % 0.0
+            output_row['Open Price'] = '%.4f' % p['open_price']
+            output_row['Commission'] = '%.2f' % 0.0
 
             writer.writerow(output_row)
             num_row_written += 1
 
-    print(f'[INFO] Number of rows written(%d)' % (num_row_written))
+    print('[INFO] Number of rows written(%d)' % (num_row_written))
 
 
 def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
@@ -309,7 +309,7 @@ def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
         f.close()
     except IOError as e:
         print(f'[ERROR] IOError: {e}')
-        print(f'[ERROR] Filepath was: %s' % FILEPATH)
+        print('[ERROR] Filepath was: %s' % FILEPATH)
 
 
 def build_global_config(global_config_filepath: str) -> dict:
@@ -321,7 +321,7 @@ def build_global_config(global_config_filepath: str) -> dict:
         config_file.close()
     except IOError as e:
         print('[ERROR] IOError.', e)
-        print(f'[ERROR] Configuration filepath was: %s' % global_config_filepath)
+        print('[ERROR] Configuration filepath was: %s' % global_config_filepath)
         return None
     return global_config
 
@@ -356,7 +356,7 @@ def do_main_thing_with_args(args):
                 sys.exit(-1)
         except IOError as e:
             print(f'[ERROR] IOError: {e}')
-            print(f'[ERROR] Input filepath was: %s' % kiwoom_config_filepath)
+            print('[ERROR] Input filepath was: %s' % kiwoom_config_filepath)
             sys.exit(-1)
 
         do_mariadb_transaction_export(global_config, list_of_simple_transactions)

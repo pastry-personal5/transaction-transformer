@@ -1,3 +1,7 @@
+"""
+This module does masking and unmasking of sensitive data in configuration files.
+"""
+
 import argparse
 import sys
 import yaml
@@ -11,7 +15,7 @@ def build_config(config_filepath: str) -> dict:
         config_file.close()
     except IOError as e:
         print('[ERROR] IOError.', e)
-        print(f'[ERROR] Configuration filepath was: %s' % config_filepath)
+        print('[ERROR] Configuration filepath was: %s' % config_filepath)
         return None
     return config
 
@@ -80,7 +84,7 @@ def do_main_thing_with_args(args):
                 f.close()
             except IOError as e:
                 print('[ERROR] IOError.', e)
-                print(f'[ERROR] Filepath was: %s' % filepath)
+                print('[ERROR] Filepath was: %s' % filepath)
                 sys.exit(-1)
 
 

@@ -1,3 +1,6 @@
+"""
+This module exports transactions to a mariaDB instance.
+"""
 import sys
 
 import mariadb
@@ -72,7 +75,7 @@ class SimpleMariaDBExporter():
                 'open_date date,\n' \
                 'open_price float,\n' \
                 'symbol varchar(512) not null,\n' \
-                'type varchar(512) not null,\n' \
+                'transaction_type varchar(512) not null,\n' \
                 'primary key(transaction_id)\n' \
                 ');\n'
             cur.execute(sql_string)
@@ -86,11 +89,11 @@ class SimpleMariaDBExporter():
             try:
                 open_date = self.get_sql_value_string(transaction.open_date)
                 symbol = self.get_sql_value_string(transaction.symbol)
-                type = self.get_sql_value_string(transaction.get_transaction_type_string())
+                transaction_type = self.get_sql_value_string(transaction.get_transaction_type_string())
                 sql_string = f'INSERT INTO simple_transactions \n' \
-                    f'(amount, commission, open_date, open_price, symbol, type) \n' \
+                    f'(amount, commission, open_date, open_price, symbol, transaction_type) \n' \
                     f'VALUES \n' \
-                    f'({transaction.amount}, {transaction.commission}, {open_date}, {transaction.open_price}, {symbol}, {type}) \n'
+                    f'({transaction.amount}, {transaction.commission}, {open_date}, {transaction.open_price}, {symbol}, {transaction_type}) \n'
                 print(sql_string)
                 cur.execute(sql_string)
             except mariadb.Error as e:

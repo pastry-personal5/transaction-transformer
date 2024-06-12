@@ -1,7 +1,8 @@
-# This program just shows content of a euc-kr-encoded file. e.g. From Kiwoom.
+"""
+This module just shows content of a euc-kr-encoded file - e.g. From Kiwoom - to utf-8-locale console.
+"""
 
 import argparse
-import pprint
 import sys
 
 
@@ -25,7 +26,7 @@ def show(input_filepath):
         input_file.close()
     except IOError as e:
         print(f'[ERROR] IOError: {e}')
-        print(f'[ERROR] Input filepath was: %s' % input_filepath)
+        print('[ERROR] Input filepath was: %s' % input_filepath)
 
 
 if __name__ == '__main__':
