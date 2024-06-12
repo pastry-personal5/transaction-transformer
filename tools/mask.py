@@ -2,6 +2,7 @@ import argparse
 import sys
 import yaml
 
+
 def build_config(config_filepath: str) -> dict:
     config = {}
     try:
@@ -27,7 +28,7 @@ def validate_config(config):
                 for r in replacement:
                     before = r['before']
                     after = r['after']
-                    if len(before) <=0 or len(after) <= 0:
+                    if len(before) <= 0 or len(after) <= 0:
                         return False
         return True
     except KeyError as e:
@@ -94,6 +95,6 @@ def main():
 
     do_main_thing_with_args(args)
 
+
 if __name__ == '__main__':
     main()
-
