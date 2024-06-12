@@ -8,8 +8,8 @@ checkmake:
 clean:
 
 lint:
-	pylint *.py || true
-	pylint tools/*.py || true
+	pylint --rcfile=./.pylintrc *.py || true
+	pylint --rcfile=./.pylintrc tools/*.py || true
 
 shellcheck:
 	shellcheck tools/*.sh || true
