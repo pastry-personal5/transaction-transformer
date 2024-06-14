@@ -1,3 +1,5 @@
+from loguru import logger
+
 from simple_transaction import SimpleTransaction
 
 
@@ -34,6 +36,9 @@ class SimplePortfolio():
                 self.p[symbol]['open_price'] = \
                     ((prev_open_price * prev_amount) + (open_price * amount)) \
                     / (prev_amount + amount)  # float
+            else:
+                logger.warning(f'For symbol ({symbol}), amount is zero now.')
+
         else:
             self.p[symbol] = {}
             self.p[symbol]['amount'] = amount  # float

@@ -94,7 +94,7 @@ class SimpleMariaDBExporter():
                     f'(amount, commission, open_date, open_price, symbol, transaction_type) \n' \
                     f'VALUES \n' \
                     f'({transaction.amount}, {transaction.commission}, {open_date}, {transaction.open_price}, {symbol}, {transaction_type}) \n'
-                print(sql_string)
+                # print(sql_string)
                 cur.execute(sql_string)
             except mariadb.Error as e:
                 self.handle_general_sql_execution_error(e, sql_string)

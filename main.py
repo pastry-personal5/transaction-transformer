@@ -45,6 +45,7 @@ import re
 import sys
 import yaml
 
+from loguru import logger
 import mariadb_exporter
 
 from simple_portfolio import SimplePortfolio
@@ -147,13 +148,13 @@ def build_list_of_simple_transactions(config_filepath):
         transaction_filepath = config['primary']['file']
         account = config['primary']['account']
         try:
-            print(f'[INFO] Reading ({transaction_filepath}) ...')
+            logger.info(f'Reading ({transaction_filepath}) ...')
             transaction_file = open(transaction_filepath, newline='', encoding='euc-kr')
             primary_list = get_list_of_simple_transactions_from_stream(transaction_file, account)
             transaction_file.close()
         except IOError as e:
-            print('[ERROR] IOError.', e)
-            print('[ERROR] Transaction filepath was: %s' % transaction_filepath)
+            logger.error('IOError.', e)
+            logger.error('Transaction filepath was: %s' % transaction_filepath)
 
         merged = primary_list.copy()
 
@@ -162,20 +163,20 @@ def build_list_of_simple_transactions(config_filepath):
             added_transaction_filepath = item['file']
             account = item['account']
             try:
-                print(f'[INFO] Reading ({added_transaction_filepath}) ...')
+                logger.info(f'Reading ({added_transaction_filepath}) ...')
                 added_transaction_file = open(added_transaction_filepath, newline='', encoding='euc-kr')
                 added_transactions = get_list_of_simple_transactions_from_stream(added_transaction_file, account)
-                print(f'[INFO] Length of added was ({len(added_transactions)})')
+                logger.info(f'Length of added was ({len(added_transactions)})')
                 merged = merge_simple_transactions(merged, added_transactions)
-                print(f'[INFO] Length of merged was ({len(merged)})')
+                logger.info(f'Length of merged was ({len(merged)})')
                 added_transaction_file.close()
             except IOError as e:
-                print('[ERROR] IOError.', e)
-                print('[ERROR] Transaction filepath was: %s' % transaction_filepath)
+                logger.error('IOError.', e)
+                logger.error('Transaction filepath was: %s' % transaction_filepath)
         config_file.close()
     except IOError as e:
-        print('[ERROR] IOError.', e)
-        print('[ERROR] Configuration filepath was: %s' % config_filepath)
+        logger.error('IOError.', e)
+        logger.error('Configuration filepath was: %s' % config_filepath)
         return None
     return merged
 
@@ -203,16 +204,16 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     for input_row in reader:
         num_row_read += 1
         if len(input_row) <= 1:
-            print(f'[WARNING] Tow short row. Expected %d. Got (%s)' % (EXPECTED_COLUMN_LENGTH, input_row))
+            logger.warning('Tow short row. Expected %d. Got (%s)' % (EXPECTED_COLUMN_LENGTH, input_row))
             continue
         if len(input_row) != EXPECTED_COLUMN_LENGTH:
-            print(f'[WARNING] A number of column in a row is not %d. Got %d. Let\'s process it.' % (EXPECTED_COLUMN_LENGTH, len(input_row)))
-            print(input_row)
+            logger.warning('A number of column in a row is not %d. Got %d. Let\'s process it.' % (EXPECTED_COLUMN_LENGTH, len(input_row)))
+            # print(input_row)
         try:
             open_date = convert_kr_date_string_to_date(input_row[0])
         except MalformedDateError:
-            print('[WARNING] A malformed date string has been found.')
-            print(f'[WARNING] An input was: %s' % input_row)
+            logger.warning('A malformed date string has been found.')
+            logger.warning('An input was: %s' % str(input_row))
             continue
 
         if transactions_of_current_date is None:
@@ -225,7 +226,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
             transactions_of_current_date = []
             current_date = open_date
         elif current_date > open_date:
-            print('[ERROR] The input file is not sorted by date.')
+            logger.error('The input file is not sorted by date.')
             sys.exit(-1)
         else:
             # It means the same day.
@@ -257,7 +258,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
         pure_commission = input_row[16]
         tax = input_row[17]
         total_commission = float(pure_commission) + float(tax)
-        transaction.commission = float(f'%.2f' % total_commission)
+        transaction.commission = float('%.2f' % total_commission)
 
         transactions_of_current_date.append(transaction)
 
@@ -298,7 +299,7 @@ def do_investing_dot_com_file_export_to_stream(output_file, portfolio: SimplePor
             writer.writerow(output_row)
             num_row_written += 1
 
-    print('[INFO] Number of rows written(%d)' % (num_row_written))
+    logger.info('Number of rows written(%d)' % (num_row_written))
 
 
 def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
@@ -308,8 +309,8 @@ def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
         do_investing_dot_com_file_export_to_stream(f, portfolio)
         f.close()
     except IOError as e:
-        print(f'[ERROR] IOError: {e}')
-        print('[ERROR] Filepath was: %s' % FILEPATH)
+        logger.error(f'IOError: {e}')
+        logger.error('Filepath was: %s' % FILEPATH)
 
 
 def build_global_config(global_config_filepath: str) -> dict:
@@ -320,22 +321,22 @@ def build_global_config(global_config_filepath: str) -> dict:
         global_config = config.copy()
         config_file.close()
     except IOError as e:
-        print('[ERROR] IOError.', e)
-        print('[ERROR] Configuration filepath was: %s' % global_config_filepath)
+        logger.error(f'IOError: {e}')
+        logger.error('Configuration filepath was: %s' % global_config_filepath)
         return None
     return global_config
 
 
 def do_main_thing_with_args(args):
     if args.global_config is None:
-        print('[ERROR] Global configuration filepath must be provieded. Use --global_config.')
+        logger.error('Global configuration filepath must be provieded. Use --global_config.')
         sys.exit(-1)
 
     global_config_filepath = args.global_config
     global_config = build_global_config(global_config_filepath)
 
     if global_config is None:
-        print('[ERROR] Global configuration is malformed.')
+        logger.error('Global configuration is malformed.')
         sys.exit(-1)
 
     flag_read_input_from_kiwoom = False
@@ -343,7 +344,7 @@ def do_main_thing_with_args(args):
         flag_read_input_from_kiwoom = True
 
     if not flag_read_input_from_kiwoom:
-        print('[ERROR] Currently only reading files from Kiwoom Securities is supported.')
+        logger.error('Currently only reading files from Kiwoom Securities is supported.')
         sys.exit(-1)
 
     if flag_read_input_from_kiwoom:
@@ -355,8 +356,8 @@ def do_main_thing_with_args(args):
             if not list_of_simple_transactions:
                 sys.exit(-1)
         except IOError as e:
-            print(f'[ERROR] IOError: {e}')
-            print('[ERROR] Input filepath was: %s' % kiwoom_config_filepath)
+            logger.error('IOError: {e}')
+            logger.error('Input filepath was: %s' % kiwoom_config_filepath)
             sys.exit(-1)
 
         do_mariadb_transaction_export(global_config, list_of_simple_transactions)
