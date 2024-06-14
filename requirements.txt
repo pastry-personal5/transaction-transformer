@@ -5,6 +5,7 @@ bs4==0.0.1
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
+click==8.1.7
 colorama==0.4.6
 dill==0.3.8
 distlib==0.3.8
@@ -13,6 +14,7 @@ future==0.18.3
 h11==0.14.0
 idna==3.7
 isort==5.13.2
+loguru==0.7.2
 lzstring==1.0.4
 mariadb==1.1.10
 mccabe==0.7.0
@@ -39,4 +41,5 @@ trio-websocket==0.11.1
 typing_extensions==4.11.0
 urllib3==2.1.0
 virtualenv==20.25.3
+win32-setctime==1.1.0
 wsproto==1.2.0
