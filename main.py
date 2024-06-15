@@ -203,19 +203,24 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     current_date = None
     for input_row in reader:
         num_row_read += 1
+        if input_row[0] == 'Version=1.0':
+            # One can ignore this
+            continue
+        elif input_row[0] == '거래일자':
+            # Assume that this is the header row. Let's skip the header.
+            continue
         if len(input_row) <= 1:
             logger.warning('Tow short row. Expected %d. Got (%s)' % (EXPECTED_COLUMN_LENGTH, input_row))
             continue
         if len(input_row) != EXPECTED_COLUMN_LENGTH:
             logger.warning('A number of column in a row is not %d. Got %d. Let\'s process it.' % (EXPECTED_COLUMN_LENGTH, len(input_row)))
-            # print(input_row)
+            logger.warning(f'Input was: {input_row}')
         try:
             open_date = convert_kr_date_string_to_date(input_row[0])
         except MalformedDateError:
             logger.warning('A malformed date string has been found.')
             logger.warning('An input was: %s' % str(input_row))
             continue
-
         if transactions_of_current_date is None:
             # Initial condition
             transactions_of_current_date = []
