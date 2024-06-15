@@ -183,7 +183,7 @@ def build_list_of_simple_transactions(config_filepath):
 
 # This function parses a 'Kiwoom' CSV file and returns the Python list of |SimpleTransaction| objects.
 #
-# Note: We know the date of the tranaction; We don't know the time of the transaction.
+# Note: We know the date of the transaction; We don't know the time of the transaction.
 # Because of that, a heuristic has been implemented. That means:
 # To ensure that 'BUY' transactions are listed before 'SELL' transaction(s) on the same day,
 # additional logic is implemented. See |append_transactions_of_current_date| for details.
@@ -252,7 +252,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
             transaction.type = SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION
         else:
             # Continue with the for loop, It means the other transaction except types above.
-            # i.e. Dividened
+            # i.e. Dividend
             # i.e. A header line
             continue
 
@@ -334,7 +334,7 @@ def build_global_config(global_config_filepath: str) -> dict:
 
 def do_main_thing_with_args(args):
     if args.global_config is None:
-        logger.error('Global configuration filepath must be provieded. Use --global_config.')
+        logger.error('Global configuration filepath must be provided. Use --global_config.')
         sys.exit(-1)
 
     global_config_filepath = args.global_config
