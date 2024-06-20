@@ -32,7 +32,7 @@ def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
     try:
         FILEPATH = './data/investing_dot_com_portfolio.txt'
         f = open(FILEPATH, 'w', encoding='utf-8')
-        investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_stream(f, portfolio)
+        investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
         f.close()
     except IOError as e:
         logger.error(f'IOError: {e}')
