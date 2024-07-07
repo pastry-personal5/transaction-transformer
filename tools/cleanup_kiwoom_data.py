@@ -24,19 +24,47 @@ import click
 from loguru import logger
 
 
-def get_corrected_line(line: str, match_object):
-    span = match_object.span()
-    prefix = line[0:span[0]]  # Ends with ','
-    postfix = line[span[1]:]  # Starts with data of a column
-    logger.info(prefix)
-    logger.info(postfix)
-
+def get_correct_line_using_group1_group2(prefix: str, postfix: str, match_object: re.Match) -> str:
     logger.info(match_object.group(1))
     logger.info(match_object.group(2))
 
     to_insert = match_object.group(1) + ',' + '\"' + match_object.group(2) + '\"' + ','
     new_line = prefix + to_insert + postfix
     return new_line
+
+
+# "abcd", defg, "hijk"
+def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> str:
+    span = match_object.span()
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
+    logger.info(prefix)
+    logger.info(postfix)
+
+    return get_correct_line_using_group1_group2(prefix, postfix, match_object)
+
+
+# "abcd", defg, hijk
+def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> str:
+    span = match_object.span()
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
+    logger.info(prefix)
+    logger.info(postfix)
+
+    # It's a heuristic to find a normal case.
+    group3 = match_object.group(3)
+
+    # If `group3` was not there before the match...
+    if not group3 in prefix:
+        logger.info('Skipping correction. Even with suspected abnormality/malformed data.')
+        return line  # Return an un-modified.
+    # If `group3` is just "000"...
+    if group3 == '000':
+        logger.info('Skipping correction. Even with suspected abnormality/malformed data.')
+        return line  # Return an un-modified.
+
+    return get_correct_line_using_group1_group2(prefix, postfix, match_object)
 
 
 def cleanup_with_filepath(filepath):
@@ -50,14 +78,21 @@ def cleanup_with_filepath(filepath):
 
     # Write
     f = open(filepath, 'w', encoding='cp949')
-    pattern = re.compile(r'(\"[0-9,\.]+\"),(1,000),')
+    pattern_0000 = re.compile(r'(\"[0-9,\.]+\"),(1,000),(\"[0-9,\.]+\")')
+    pattern_0001 = re.compile(r'(\"[0-9,\.]+\"),(1,000),([0-9,\.]+)')
     count_matched = 0
     for line in lines:
-        match_object = re.search(pattern, line)
-        if match_object:
-            logger.info(match_object)
+        match_object_0000 = re.search(pattern_0000, line)
+        match_object_0001 = re.search(pattern_0001, line)
+        if match_object_0000:
+            logger.info(match_object_0000)
             count_matched += 1
-            line = get_corrected_line(line, match_object)
+            line = get_corrected_line_for_pattern_0000(line, match_object_0000)
+            logger.info(line)
+        elif match_object_0001:
+            logger.info(match_object_0001)
+            count_matched += 1
+            line = get_corrected_line_for_pattern_0001(line, match_object_0001)
             logger.info(line)
         f.write(line)
 
