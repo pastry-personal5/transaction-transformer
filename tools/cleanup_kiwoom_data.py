@@ -24,11 +24,24 @@ import click
 from loguru import logger
 
 
-def get_correct_line_using_group1_group2(prefix: str, postfix: str, match_object: re.Match) -> str:
+def get_correct_line_for_pattern_0000(prefix: str, postfix: str, match_object: re.Match) -> str:
     logger.info(match_object.group(1))
     logger.info(match_object.group(2))
+    logger.info(match_object.group(3))
 
-    to_insert = match_object.group(1) + ',' + '\"' + match_object.group(2) + '\"' + ','
+    to_insert = match_object.group(1) + ',' + '\"' + match_object.group(2) + '\"' + ',' \
+        + match_object.group(3)
+    new_line = prefix + to_insert + postfix
+    return new_line
+
+
+def get_correct_line_for_pattern_0001(prefix: str, postfix: str, match_object: re.Match) -> str:
+    logger.info(match_object.group(1))
+    logger.info(match_object.group(2))
+    logger.info(match_object.group(3))
+
+    to_insert = match_object.group(1) + ',' + '\"' + match_object.group(2) + '\"' + ',' \
+        + '\"' + match_object.group(3) + '\"'
     new_line = prefix + to_insert + postfix
     return new_line
 
@@ -41,7 +54,7 @@ def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> st
     logger.info(prefix)
     logger.info(postfix)
 
-    return get_correct_line_using_group1_group2(prefix, postfix, match_object)
+    return get_correct_line_for_pattern_0000(prefix, postfix, match_object)
 
 
 # "abcd", defg, hijk
@@ -64,7 +77,7 @@ def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> st
         logger.info('Skipping correction. Even with suspected abnormality/malformed data.')
         return line  # Return an un-modified.
 
-    return get_correct_line_using_group1_group2(prefix, postfix, match_object)
+    return get_correct_line_for_pattern_0001(prefix, postfix, match_object)
 
 
 def cleanup_with_filepath(filepath):
@@ -79,7 +92,7 @@ def cleanup_with_filepath(filepath):
     # Write
     f = open(filepath, 'w', encoding='cp949')
     pattern_0000 = re.compile(r'(\"[0-9,\.]+\"),(1,000),(\"[0-9,\.]+\")')
-    pattern_0001 = re.compile(r'(\"[0-9,\.]+\"),(1,000),([0-9,\.]+)')
+    pattern_0001 = re.compile(r'(\"[0-9,\.]+\"),(1,000),([0-9\.]+)')
     count_matched = 0
     for line in lines:
         match_object_0000 = re.search(pattern_0000, line)
