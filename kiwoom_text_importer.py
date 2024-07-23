@@ -61,16 +61,16 @@ def convert_kr_date_string_to_date(src):
 
 def append_transactions_of_current_date(list_of_simple_transactions: list, transactions_of_current_date: list):
     for t in transactions_of_current_date:
-        if t.type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION:
+        if t.transaction_type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION:
             list_of_simple_transactions.append(t)
     for t in transactions_of_current_date:
-        if t.type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_INSERTION:
+        if t.transaction_type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_INSERTION:
             list_of_simple_transactions.append(t)
     for t in transactions_of_current_date:
-        if t.type == SimpleTransaction.TYPE_BUY:
+        if t.transaction_type == SimpleTransaction.TYPE_BUY:
             list_of_simple_transactions.append(t)
     for t in transactions_of_current_date:
-        if t.type == SimpleTransaction.TYPE_SELL:
+        if t.transaction_type == SimpleTransaction.TYPE_SELL:
             list_of_simple_transactions.append(t)
 
 
@@ -211,14 +211,16 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
         transaction.account = account
         transaction.open_date = open_date
 
+        input_row[4] = input_row[4].strip()
+
         if input_row[4] == STRING_FOR_TYPE_SELL:
-            transaction.type = SimpleTransaction.TYPE_SELL
+            transaction.transaction_type = SimpleTransaction.TYPE_SELL
         elif input_row[4] == STRING_FOR_TYPE_BUY:
-            transaction.type = SimpleTransaction.TYPE_BUY
+            transaction.transaction_type = SimpleTransaction.TYPE_BUY
         elif input_row[4] == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION:
-            transaction.type = SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_INSERTION
+            transaction.transaction_type = SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_INSERTION
         elif input_row[4] == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION:
-            transaction.type = SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION
+            transaction.transaction_type = SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION
         else:
             # Continue with the for loop, It means the other transaction except types above.
             # i.e. Dividend

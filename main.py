@@ -14,6 +14,7 @@ import kiwoom_text_importer
 import mariadb_exporter
 
 from simple_portfolio import SimplePortfolio
+from yahoo_finance_web_exporter import YahooFinanceWebExporter
 
 
 def do_mariadb_transaction_export(global_config, list_of_simple_transactions):
@@ -91,6 +92,21 @@ def do_main_thing_with_args(args):
         portfolio = build_portfolio(list_of_simple_transactions)
 
         do_investing_dot_com_portfolio_export(portfolio)
+
+    # do_yahoo_finance_web_export(portfolio)
+
+
+def do_yahoo_finance_web_export(portfolio):
+    config_filepath = './config/yahoo.yaml'
+    yahoo_finance_web_exporter = YahooFinanceWebExporter()
+    if not yahoo_finance_web_exporter.read_config(config_filepath):
+        return False
+    if not yahoo_finance_web_exporter.verify_config():
+        return False
+    yahoo_finance_web_exporter.prepare_export()
+    yahoo_finance_web_exporter.export_simple_portfolio(portfolio)
+    yahoo_finance_web_exporter.cleanup()
+    return True
 
 
 def main():
