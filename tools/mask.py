@@ -6,6 +6,8 @@ import argparse
 import sys
 import yaml
 
+from loguru import logger
+
 
 def build_config(config_filepath: str) -> dict:
     config = {}
@@ -14,8 +16,8 @@ def build_config(config_filepath: str) -> dict:
         config = yaml.safe_load(config_file)
         config_file.close()
     except IOError as e:
-        print('[ERROR] IOError.', e)
-        print('[ERROR] Configuration filepath was: %s' % config_filepath)
+        logger.error('IOError.', e)
+        logger.error('Configuration filepath was: %s' % config_filepath)
         return None
     return config
 
@@ -36,7 +38,7 @@ def validate_config(config):
                         return False
         return True
     except KeyError as e:
-        print('[ERROR] KeyError.', e)
+        logger.error('KeyError.', e)
         return False
 
 
@@ -49,16 +51,16 @@ def do_main_thing_with_args(args):
     elif args.function == 'unmask':
         function = UNMASK
     else:
-        print('[ERROR] Function must be given. Use --function.')
+        logger.error('Function must be given. Use --function.')
         sys.exit(-1)
 
     config = build_config(args.config)
     if config is None:
-        print('[ERROR] Configuration must be given. Use --config.')
+        logger.error('Configuration must be given. Use --config.')
         sys.exit(-1)
     result = validate_config(config)
     if not result:
-        print('[ERROR] Configuration is malformed.')
+        logger.error('Configuration is malformed.')
         sys.exit(-1)
 
     masks = config['masks']
@@ -83,8 +85,8 @@ def do_main_thing_with_args(args):
                 f.writelines(output_lines)
                 f.close()
             except IOError as e:
-                print('[ERROR] IOError.', e)
-                print('[ERROR] Filepath was: %s' % filepath)
+                logger.error('IOError.', e)
+                logger.error('Filepath was: %s' % filepath)
                 sys.exit(-1)
 
 
