@@ -5,13 +5,15 @@ This module just shows content of a euc-kr-encoded file - e.g. From Kiwoom - to 
 import argparse
 import sys
 
+from loguru import logger
+
 
 def main():
     parser = argparse.ArgumentParser(description='This tool shows content of a file')
     parser.add_argument('input')
     args = parser.parse_args()
     if args.input is None:
-        print('[ERROR] Please provide an input filepath.')
+        logger.error('Please provide an input filepath.')
         sys.exit(-1)
 
     show(args.input)
@@ -25,8 +27,8 @@ def show(input_filepath):
             sys.stdout.buffer.write(('\n').encode('utf-8'))
         input_file.close()
     except IOError as e:
-        print(f'[ERROR] IOError: {e}')
-        print('[ERROR] Input filepath was: %s' % input_filepath)
+        logger.error(f'IOError: {e}')
+        logger.error(f'Input filepath was: {input_filepath}')
 
 
 if __name__ == '__main__':
