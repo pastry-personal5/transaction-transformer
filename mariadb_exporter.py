@@ -3,6 +3,8 @@ This module exports transactions to a mariaDB instance.
 """
 import sys
 
+from loguru import logger
+
 import mariadb
 
 
@@ -29,7 +31,7 @@ class SimpleMariaDBExporter():
             )
             self.conn.autocommit = True
         except mariadb.Error as e:
-            print(f'[Error] Error connecting to the database: {e}')
+            logger.error(f'Error connecting to the database: {e}')
             sys.exit(-1)
 
     def commit(self):
@@ -44,8 +46,8 @@ class SimpleMariaDBExporter():
         return self.conn.cursor()
 
     def handle_general_sql_execution_error(self, exception_object, sql_string):
-        print(f'[Error] Error executing the SQL. Error was: {exception_object}')
-        print(f'[Error] Error executing the SQL. SQL was: {sql_string}')
+        logger.error(f'Error executing the SQL. Error was: {exception_object}')
+        logger.error(f'Error executing the SQL. SQL was: {sql_string}')
         sys.exit(1)
 
     def delete_all_records_from_simple_transactions_table(self, cur):
@@ -85,7 +87,6 @@ class SimpleMariaDBExporter():
         self.delete_all_records_from_simple_transactions_table(cur)
 
         for transaction in list_of_simple_transactions:
-            # print(str(transaction))
             try:
                 open_date = self.get_sql_value_string(transaction.open_date)
                 symbol = self.get_sql_value_string(transaction.symbol)
@@ -94,7 +95,6 @@ class SimpleMariaDBExporter():
                     f'(amount, commission, open_date, open_price, symbol, transaction_type) \n' \
                     f'VALUES \n' \
                     f'({transaction.amount}, {transaction.commission}, {open_date}, {transaction.open_price}, {symbol}, {transaction_type}) \n'
-                # print(sql_string)
                 cur.execute(sql_string)
             except mariadb.Error as e:
                 self.handle_general_sql_execution_error(e, sql_string)
