@@ -47,9 +47,9 @@ class SimpleTransaction():
         elif transaction_type_string == 'BUY':
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY
         elif transaction_type_string == 'STOCK_SPLIT_MERGE_INSERTION':
-            return SimpleTransaction.SimpleTransactionTypeEnum.STOCK_SPLIT_MERGE_INSERTION
+            return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
         elif transaction_type_string == 'STOCK_SPLIT_MERGE_DELETION':
-            return SimpleTransaction.SimpleTransactionTypeEnum.STOCK_SPLIT_MERGE_DELETION
+            return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
         elif transaction_type_string == 'OTHER':
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_OTHER
 
