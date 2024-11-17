@@ -90,11 +90,11 @@ class SimplePortfolio():
             self.p[symbol]['open_date'] = open_date  # datetime.date
 
     def record(self, transaction: SimpleTransaction):
-        if transaction.transaction_type == SimpleTransaction.TYPE_BUY:
+        if transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY:
             self.record_buy(transaction)
-        elif transaction.transaction_type == SimpleTransaction.TYPE_SELL:
+        elif transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL:
             self.record_sell(transaction)
-        elif transaction.transaction_type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_INSERTION:
+        elif transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION:
             self.record_stock_split_merge_insertion(transaction)
-        elif transaction.transaction_type == SimpleTransaction.TYPE_STOCK_SPLIT_MERGE_DELETION:
+        elif transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION:
             self.record_stock_split_merge_deletion(transaction)

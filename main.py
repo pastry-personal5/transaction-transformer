@@ -15,8 +15,15 @@ import investing_dot_com_text_exporter
 import kiwoom_text_importer
 import mariadb_exporter
 
+from db_connection import DBConnection
 from simple_portfolio import SimplePortfolio
 from yahoo_finance_web_exporter import YahooFinanceWebExporter
+from simple_transaction_db_impl import SimpleTransactionDBImpl
+from simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
+
+
+global_flag_initialized_global_objects = False
+global_db_connection = None
 
 
 def do_mariadb_transaction_export(global_config, list_of_simple_transactions):
@@ -102,11 +109,13 @@ def kiwoom_transaction(global_config, kiwoom_config):
         sys.exit(-1)
 
     global_config_filepath = global_config
-    global_config_dict = build_global_config(global_config_filepath)
+    global_config_ir = build_global_config(global_config_filepath)
 
-    if global_config_dict is None:
+    if global_config_ir is None:
         logger.error('Global configuration is malformed.')
         sys.exit(-1)
+
+    lazy_init_global_objects(global_config_ir)
 
     flag_read_input_from_kiwoom = False
     if kiwoom_config is not None:
@@ -129,7 +138,7 @@ def kiwoom_transaction(global_config, kiwoom_config):
             logger.error('Input filepath was: %s' % kiwoom_config_filepath)
             sys.exit(-1)
 
-        do_mariadb_transaction_export(global_config_dict, list_of_simple_transactions)
+        do_mariadb_transaction_export(global_config_ir, list_of_simple_transactions)
 
         portfolio = build_portfolio(list_of_simple_transactions)
 
@@ -159,5 +168,62 @@ def get():
     pass
 
 
-if __name__ == '__main__':
+@get.command()
+@click.option('--global-config', required=True, help='Global configuration filepath.')
+@click.option('--symbol', help='Stock symbol to match.')
+def simple_transaction(global_config, symbol):
+    """
+    Display a list of simple transaction records
+    """
+    global global_db_connection
+
+    # @FIXME(dennis.oh) Remove duplicated code.
+    if global_config is None:
+        logger.error('Global configuration filepath must be provided. Use --global_config.')
+        sys.exit(-1)
+
+    global_config_filepath = global_config
+    global_config_ir = build_global_config(global_config_filepath)
+
+    if global_config_ir is None:
+        logger.error('Global configuration is malformed.')
+        sys.exit(-1)
+    lazy_init_global_objects(global_config_ir)
+
+    # Get records from the database.
+    db_impl = SimpleTransactionDBImpl()
+
+    if symbol:
+        simple_transaction_filter = SimpleTransactionDBImpl.SimpleTransactionFilter()
+        simple_transaction_filter.flag_filter_by['symbol'] = True
+        simple_transaction_filter.value_dict['symbol'] = symbol
+        simple_transaction_records = db_impl.get_records_with_filter(global_db_connection, simple_transaction_filter)
+        printer_impl = SimpleTransactionTextPrinterImpl()
+        printer_impl.print_all(simple_transaction_records)
+    else:
+        simple_transaction_records = db_impl.get_all_records(global_db_connection)
+        printer_impl = SimpleTransactionTextPrinterImpl()
+        printer_impl.print_all(simple_transaction_records)
+
+
+def lazy_init_global_objects(global_config_ir):
+    global global_flag_initialized_global_objects
+    global global_db_connection
+    if global_flag_initialized_global_objects is True:
+        return
+    global_flag_initialized_global_objects = True
+    global_db_connection = DBConnection(global_config_ir)
+    global_db_connection.connect()
+
+
+def cleanup_global_objects():
+    if global_db_connection:
+        global_db_connection.close()
+
+
+def main():
     cli()
+    cleanup_global_objects()
+
+if __name__ == '__main__':
+    main()
