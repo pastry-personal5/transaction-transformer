@@ -24,6 +24,7 @@ from simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImp
 
 global_flag_initialized_global_objects = False
 global_db_connection = None
+global_config_ir = None
 
 
 def do_mariadb_transaction_export(global_config, list_of_simple_transactions):
@@ -40,37 +41,19 @@ def build_portfolio(list_of_simple_transactions):
 
 def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
     try:
-        FILEPATH = './data/investing_dot_com_portfolio.txt'
-        f = open(FILEPATH, 'w', encoding='utf-8')
+        output_file_path = './data/investing_dot_com_portfolio.txt'
+        f = open(output_file_path, 'w', encoding='utf-8')
         investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
         f.close()
     except IOError as e:
         logger.error(f'IOError: {e}')
-        logger.error('Filepath was: %s' % FILEPATH)
-
-
-def build_global_config(global_config_filepath: str) -> dict:
-    global_config = {}
-    try:
-        config_file = open(global_config_filepath, 'rb')
-        config = yaml.safe_load(config_file)
-        global_config = config.copy()
-        config_file.close()
-    except IOError as e:
-        logger.error(f'IOError: {e}')
-        logger.error('Configuration filepath was: %s' % global_config_filepath)
-        return None
-    return global_config
-
-
-def do_main_thing_with_args(args):
-    pass
+        logger.error('The file path was: %s' % output_file_path)
 
 
 def do_yahoo_finance_web_export(portfolio):
-    config_filepath = './config/yahoo.yaml'
+    config_file_path = './config/yahoo.yaml'
     yahoo_finance_web_exporter = YahooFinanceWebExporter()
-    if not yahoo_finance_web_exporter.read_config(config_filepath):
+    if not yahoo_finance_web_exporter.read_config(config_file_path):
         return False
     if not yahoo_finance_web_exporter.verify_config():
         return False
@@ -97,25 +80,13 @@ def create():
     pass
 
 
+# <program> create kiwoom-transaction
 @create.command()
-@click.option('--global-config', required=True, help='Global configuration filepath.')
-@click.option('--kiwoom-config', required=True, help='Kiwoom configuration filepath.')
-def kiwoom_transaction(global_config, kiwoom_config):
+@click.option('--kiwoom-config', required=True, help='Kiwoom configuration file path.')
+def kiwoom_transaction(kiwoom_config):
     """
     Import Kiwoom Securities transaction file and create transaction records in a database.
     """
-    if global_config is None:
-        logger.error('Global configuration filepath must be provided. Use --global_config.')
-        sys.exit(-1)
-
-    global_config_filepath = global_config
-    global_config_ir = build_global_config(global_config_filepath)
-
-    if global_config_ir is None:
-        logger.error('Global configuration is malformed.')
-        sys.exit(-1)
-
-    lazy_init_global_objects(global_config_ir)
 
     flag_read_input_from_kiwoom = False
     if kiwoom_config is not None:
@@ -126,16 +97,16 @@ def kiwoom_transaction(global_config, kiwoom_config):
         sys.exit(-1)
 
     if flag_read_input_from_kiwoom:
-        kiwoom_config_filepath = kiwoom_config
+        kiwoom_config_file_path = kiwoom_config
         list_of_simple_transactions = None
 
         try:
-            list_of_simple_transactions = kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_filepath)
+            list_of_simple_transactions = kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
             if not list_of_simple_transactions:
                 sys.exit(-1)
         except IOError as e:
             logger.error(f'IOError: {e}')
-            logger.error('Input filepath was: %s' % kiwoom_config_filepath)
+            logger.error('Input file path was: %s' % kiwoom_config_file_path)
             sys.exit(-1)
 
         do_mariadb_transaction_export(global_config_ir, list_of_simple_transactions)
@@ -152,7 +123,7 @@ def export():
     """
     pass
 
-
+# <program> export yahoo-finance
 @export.command()
 def yahoo_finance():
     # @FIXME(dennis.oh) Instead of None, read portfolio.
@@ -167,28 +138,14 @@ def get():
     """
     pass
 
-
+# <program> get simple-transaction
 @get.command()
-@click.option('--global-config', required=True, help='Global configuration filepath.')
 @click.option('--symbol', help='Stock symbol to match.')
-def simple_transaction(global_config, symbol):
+def simple_transaction(symbol):
     """
     Display a list of simple transaction records
     """
     global global_db_connection
-
-    # @FIXME(dennis.oh) Remove duplicated code.
-    if global_config is None:
-        logger.error('Global configuration filepath must be provided. Use --global_config.')
-        sys.exit(-1)
-
-    global_config_filepath = global_config
-    global_config_ir = build_global_config(global_config_filepath)
-
-    if global_config_ir is None:
-        logger.error('Global configuration is malformed.')
-        sys.exit(-1)
-    lazy_init_global_objects(global_config_ir)
 
     # Get records from the database.
     db_impl = SimpleTransactionDBImpl()
@@ -206,6 +163,20 @@ def simple_transaction(global_config, symbol):
         printer_impl.print_all(simple_transaction_records)
 
 
+def build_global_config(global_config_file_path: str) -> dict:
+    global_config_to_return = {}
+    try:
+        config_file = open(global_config_file_path, 'rb')
+        config = yaml.safe_load(config_file)
+        global_config_to_return = config.copy()
+        config_file.close()
+    except IOError as e:
+        logger.error(f'IOError: {e}')
+        logger.error('A configuration file path was: %s' % global_config_file_path)
+        return None
+    return global_config_to_return
+
+
 def lazy_init_global_objects(global_config_ir):
     global global_flag_initialized_global_objects
     global global_db_connection
@@ -216,12 +187,24 @@ def lazy_init_global_objects(global_config_ir):
     global_db_connection.connect()
 
 
+def initialize_global_objects():
+    global global_config_ir
+    global_config_file_path = './config/global_config.yaml'
+    global_config_ir = build_global_config(global_config_file_path)
+
+    if global_config_ir is None:
+        logger.error('Global configuration is malformed.')
+        sys.exit(-1)
+    lazy_init_global_objects(global_config_ir)
+
+
 def cleanup_global_objects():
     if global_db_connection:
         global_db_connection.close()
 
 
 def main():
+    initialize_global_objects()
     cli()
     cleanup_global_objects()
 
