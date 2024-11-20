@@ -5,7 +5,7 @@ A chatgpt-4o-generated unittest in 2024.
 import unittest
 from unittest.mock import patch
 
-from  yahoo_finance_web_exporter import YahooFinanceWebExporter
+from yahoo_finance_web_exporter import YahooFinanceWebExporter
 
 
 class TestYahooFinanceWebExporter(unittest.TestCase):
@@ -31,6 +31,7 @@ class TestYahooFinanceWebExporter(unittest.TestCase):
         # pylint: disable=redundant-unittest-assert
         self.assertTrue(True)  # Simply asserting True because if the function completes, it worked as expected
         # pylint: enable=redundant-unittest-assert
+
 
 if __name__ == '__main__':
     unittest.main()

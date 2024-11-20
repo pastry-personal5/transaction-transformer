@@ -13,6 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from simple_portfolio import SimplePortfolio
 
+
 class WebClientContext:
     driver = None  # It's a Selenium driver.
 
@@ -96,8 +97,6 @@ class YahooFinanceWebExporter:
         element_for_login_user_name.send_keys(user_id)
         time.sleep(const_time_to_wait)
         element_for_login_sign_in_button.click()
-
-
 
         # It's now in a kind of "enter-your-password" page.
         logger.info('Visiting a kind of "enter-your-password" page...')

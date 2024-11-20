@@ -225,5 +225,6 @@ def main():
     cli()
     cleanup_global_objects()
 
+
 if __name__ == '__main__':
     main()

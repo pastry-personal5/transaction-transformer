@@ -4,15 +4,16 @@ from enum import Enum
 
 class SimpleTransaction():
 
+    CORE_FIELD_LENGTH = 7  # The length of items - account, amount, open_date, etc.
+
     class SimpleTransactionTypeEnum(Enum):
         # Constants
         TYPE_SELL = 0
         TYPE_BUY = 1
         TYPE_STOCK_SPLIT_MERGE_INSERTION = 2
         TYPE_STOCK_SPLIT_MERGE_DELETION = 3
-        TYPE_OTHER= 4
+        TYPE_OTHER = 4
 
-    CORE_FIELD_LENGTH = 7  # The length of items - account, amount, open_date, etc.
 
     def __init__(self, symbol='', transaction_type=SimpleTransactionTypeEnum.TYPE_BUY, amount=0.0, open_price=0.0, open_date=datetime.date(1970, 1, 1), commission=0.0):
         self.account = ''  # string
@@ -52,4 +53,3 @@ class SimpleTransaction():
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
         elif transaction_type_string == 'OTHER':
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_OTHER
-

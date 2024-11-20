@@ -69,7 +69,7 @@ def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> st
     group3 = match_object.group(3)
 
     # If `group3` was not there before the match...
-    if not group3 in prefix:
+    if group3 not in prefix:
         logger.info('Skipping correction. Even with suspected abnormality/malformed data.')
         return line  # Return an un-modified.
     # If `group3` is just "000"...

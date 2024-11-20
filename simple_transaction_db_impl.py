@@ -114,10 +114,7 @@ class SimpleTransactionDBImpl():
 
         # Replace special characters with escaped versions
         escaped_value = (
-            value.replace('\\', '\\\\')  # Escape backslash
-                .replace('\'', '\\\'')    # Escape single quote
-                .replace('"', '\\"')    # Escape double quote
-                .replace('\0', '\\0')   # Escape null byte
+            value.replace('\\', '\\\\').replace('\'', '\\\'').replace('"', '\\"').replace('\0', '\\0')
         )
 
         # Wrap in quotes for SQL compatibility

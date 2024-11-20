@@ -1,6 +1,7 @@
 from simple_transaction import SimpleTransaction
 from text_printer_impl_base import TextPrinterImplBase
 
+
 class SimpleTransactionTextPrinterImpl(TextPrinterImplBase):
 
     def __init__(self):
