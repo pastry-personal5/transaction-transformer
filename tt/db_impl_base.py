@@ -4,6 +4,7 @@ from loguru import logger
 
 import mariadb
 
+
 class DBImplBase():
 
     def __init__(self, conn, cur):

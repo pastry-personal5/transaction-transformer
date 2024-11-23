@@ -108,7 +108,6 @@ class SimpleTransactionDBImpl(DBImplBase):
         except mariadb.Error as e:
             self.handle_general_sql_execution_error(e, sql_string)
 
-
     def export_all(self, list_of_simple_transactions):
 
         cur = self.db_connection.cur()

@@ -120,6 +120,7 @@ def export():
     """
     pass
 
+
 # <program> export yahoo-finance
 @export.command()
 def yahoo_finance():
@@ -134,6 +135,7 @@ def get():
     This command gets and displays data.
     """
     pass
+
 
 # <program> get simple-transaction
 @get.command()

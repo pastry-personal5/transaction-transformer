@@ -14,7 +14,6 @@ class SimpleTransaction():
         TYPE_STOCK_SPLIT_MERGE_DELETION = 3
         TYPE_OTHER = 4
 
-
     def __init__(self, symbol='', transaction_type=SimpleTransactionTypeEnum.TYPE_BUY, amount=0.0, open_price=0.0, open_date=datetime.date(1970, 1, 1), commission=0.0):
         self.account = ''  # string
         self.amount = amount  # float

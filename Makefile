@@ -8,17 +8,17 @@ checkmake:
 clean:
 
 lint:
-	pylint --rcfile=./.pylintrc *.py || true
-	pylint --rcfile=./.pylintrc tools/*.py || true
-	pylint --rcfile=./.pylintrc tests/*.py || true
+	pylint --rcfile=./.pylintrc ./tt/*.py || true
+	pylint --rcfile=./.pylintrc ./tools/*.py || true
+	pylint --rcfile=./.pylintrc ./tests/*.py || true
 
 shellcheck:
 	shellcheck tools/*.sh || true
 
 style:
-	pycodestyle *.py || true
-	pycodestyle tools/*.py || true
-	pycodestyle tests/*.py || true
+	pycodestyle ./tt/*.py || true
+	pycodestyle ./tools/*.py || true
+	pycodestyle ./tests/*.py || true
 
 unittest:
 	python -m unittest tests/*.py
