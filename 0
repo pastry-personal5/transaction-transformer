@@ -6,9 +6,11 @@ FILEPATH_1="./venv/Scripts/activate"
 
 if [ -e "${FILEPATH_0}" ]; then
 	source ${FILEPATH_0}
-fi
-if [ -e "${FILEPATH_1}" ]; then
+elif [ -e "${FILEPATH_1}" ]; then
 	source ${FILEPATH_1}
+else
+	echo "Nothing to source. Try to do $ python -m venv venv"
+	exit 1
 fi
 
 export PYTHONIOENCODING=utf-8
