@@ -3,11 +3,13 @@ import datetime
 from loguru import logger
 import mariadb
 
+
 from db_connection import DBConnection
+from db_impl_base import DBImplBase
 from simple_transaction import SimpleTransaction
 
 
-class SimpleTransactionDBImpl():
+class SimpleTransactionDBImpl(DBImplBase):
 
     class SimpleTransactionFilter():
 
@@ -36,12 +38,12 @@ class SimpleTransactionDBImpl():
 
             assert len(self.flag_sql_escaping_needed) == SimpleTransaction.CORE_FIELD_LENGTH
 
-    def __init__(self):
-        pass
+    def __init__(self, db_connection):
+        self.db_connection = db_connection
 
-    def get_all_records(self, db_connection: DBConnection) -> list[SimpleTransaction]:
+    def get_all_records(self) -> list[SimpleTransaction]:
         list_of_simple_transaction_records = []
-        cur = db_connection.get_cursor()
+        cur = self.db_connection.cur()
         sql_string = 'USE finance'
         cur.execute(sql_string)
         sql_string = 'SELECT amount, commission, open_date, open_price, symbol, transaction_type FROM simple_transactions'
@@ -53,10 +55,10 @@ class SimpleTransactionDBImpl():
 
         return list_of_simple_transaction_records
 
-    def get_records_with_filter(self, db_connection: DBConnection, simple_transaction_filter: SimpleTransactionFilter) -> list[SimpleTransaction]:
+    def get_records_with_filter(self, simple_transaction_filter: SimpleTransactionFilter) -> list[SimpleTransaction]:
         where_clause_str = self._get_where_clause(simple_transaction_filter)
         list_of_simple_transaction_records = []
-        cur = db_connection.get_cursor()
+        cur = self.db_connection.cur()
         sql_string = 'USE finance'
         cur.execute(sql_string)
         sql_string = 'SELECT amount, commission, open_date, open_price, symbol, transaction_type FROM simple_transactions'
@@ -90,7 +92,7 @@ class SimpleTransactionDBImpl():
                 str_to_return += '='
                 value_given = simple_transaction_filter.value_dict[key]
                 if simple_transaction_filter.flag_sql_escaping_needed[key] is True:
-                    str_to_return += self._escape_sql_string(value_given)
+                    str_to_return += self.escape_sql_string(value_given)
                 else:
                     str_to_return += value_given
                 if index != len_filters - 1:
@@ -98,24 +100,49 @@ class SimpleTransactionDBImpl():
                 index += 1
         return str_to_return
 
-    def _escape_sql_string(self, value: str) -> str:
-        """
-        Escapes special characters in a string for safe use in an SQL query for MariaDB.
-        * @author: chatgpt-4.
+    def delete_all_records_from_simple_transactions_table(self):
+        cur = self.db_connection.cur()
+        try:
+            sql_string = 'DELETE FROM simple_transactions;'
+            cur.execute(sql_string)
+        except mariadb.Error as e:
+            self.handle_general_sql_execution_error(e, sql_string)
 
-        Args:
-            value (str): The string to escape.
 
-        Returns:
-            str: The escaped string, safe for inclusion in SQL.
-        """
-        if value is None:
-            return 'NULL'
+    def export_all(self, list_of_simple_transactions):
 
-        # Replace special characters with escaped versions
-        escaped_value = (
-            value.replace('\\', '\\\\').replace('\'', '\\\'').replace('"', '\\"').replace('\0', '\\0')
-        )
+        cur = self.db_connection.cur()
 
-        # Wrap in quotes for SQL compatibility
-        return f'\'{escaped_value}\''
+        try:
+            sql_string = 'CREATE DATABASE IF NOT EXISTS finance;'
+            cur.execute(sql_string)
+            sql_string = 'USE finance;'
+            cur.execute(sql_string)
+            sql_string = 'CREATE TABLE IF NOT EXISTS simple_transactions(\n' \
+                'transaction_id int auto_increment,\n' \
+                'amount float,\n' \
+                'commission float,\n' \
+                'open_date date,\n' \
+                'open_price float,\n' \
+                'symbol varchar(512) not null,\n' \
+                'transaction_type varchar(512) not null,\n' \
+                'primary key(transaction_id)\n' \
+                ');\n'
+            cur.execute(sql_string)
+        except mariadb.Error as e:
+            self.handle_general_sql_execution_error(e, sql_string)
+
+        self.delete_all_records_from_simple_transactions_table()
+
+        for transaction in list_of_simple_transactions:
+            try:
+                open_date = self.escape_sql_string(transaction.open_date.strftime('%Y-%m-%d'))
+                symbol = self.escape_sql_string(transaction.symbol)
+                transaction_type = self.escape_sql_string(transaction.get_transaction_type_string())
+                sql_string = f'INSERT INTO simple_transactions \n' \
+                    f'(amount, commission, open_date, open_price, symbol, transaction_type) \n' \
+                    f'VALUES \n' \
+                    f'({transaction.amount}, {transaction.commission}, {open_date}, {transaction.open_price}, {symbol}, {transaction_type}) \n'
+                cur.execute(sql_string)
+            except mariadb.Error as e:
+                self.handle_general_sql_execution_error(e, sql_string)

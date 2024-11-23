@@ -13,10 +13,10 @@ class DBConnection():
 
     def connect(self):
         assert self.global_config_ir is not None
-        host = self.global_config_ir['mariadb_exporter']['host']
-        port = self.global_config_ir['mariadb_exporter']['port']  # Integer
-        user = self.global_config_ir['mariadb_exporter']['user']
-        password = self.global_config_ir['mariadb_exporter']['password']
+        host = self.global_config_ir['mariadb']['host']
+        port = self.global_config_ir['mariadb']['port']  # Integer
+        user = self.global_config_ir['mariadb']['user']
+        password = self.global_config_ir['mariadb']['password']
         try:
             self.conn = mariadb.connect(
                 host=host,
@@ -36,6 +36,6 @@ class DBConnection():
         self.conn.close()
         self.conn = None
 
-    def get_cursor(self):
+    def cur(self):
         assert self.conn is not None
         return self.conn.cursor()

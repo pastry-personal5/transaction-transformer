@@ -13,7 +13,7 @@ from loguru import logger
 
 import investing_dot_com_text_exporter
 import kiwoom_text_importer
-import mariadb_exporter
+
 
 from db_connection import DBConnection
 from simple_portfolio import SimplePortfolio
@@ -25,11 +25,6 @@ from simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImp
 global_flag_initialized_global_objects = False
 global_db_connection = None
 global_config_ir = None
-
-
-def do_mariadb_transaction_export(global_config, list_of_simple_transactions):
-    exporter = mariadb_exporter.SimpleMariaDBExporter(global_config)
-    exporter.export_all(list_of_simple_transactions)
 
 
 def build_portfolio(list_of_simple_transactions):
@@ -109,7 +104,9 @@ def kiwoom_transaction(kiwoom_config):
             logger.error('Input file path was: %s' % kiwoom_config_file_path)
             sys.exit(-1)
 
-        do_mariadb_transaction_export(global_config_ir, list_of_simple_transactions)
+        global global_db_connection
+        db_impl = SimpleTransactionDBImpl(global_db_connection)
+        db_impl.export_all(list_of_simple_transactions)
 
         portfolio = build_portfolio(list_of_simple_transactions)
 
@@ -148,17 +145,17 @@ def simple_transaction(symbol):
     global global_db_connection
 
     # Get records from the database.
-    db_impl = SimpleTransactionDBImpl()
+    db_impl = SimpleTransactionDBImpl(global_db_connection)
 
     if symbol:
         simple_transaction_filter = SimpleTransactionDBImpl.SimpleTransactionFilter()
         simple_transaction_filter.flag_filter_by['symbol'] = True
         simple_transaction_filter.value_dict['symbol'] = symbol
-        simple_transaction_records = db_impl.get_records_with_filter(global_db_connection, simple_transaction_filter)
+        simple_transaction_records = db_impl.get_records_with_filter(simple_transaction_filter)
         printer_impl = SimpleTransactionTextPrinterImpl()
         printer_impl.print_all(simple_transaction_records)
     else:
-        simple_transaction_records = db_impl.get_all_records(global_db_connection)
+        simple_transaction_records = db_impl.get_all_records()
         printer_impl = SimpleTransactionTextPrinterImpl()
         printer_impl.print_all(simple_transaction_records)
 
