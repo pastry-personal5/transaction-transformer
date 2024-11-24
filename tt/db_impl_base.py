@@ -1,15 +1,15 @@
 import sys
 
 from loguru import logger
-
 import mariadb
+
+from db_connection import DBConnection
 
 
 class DBImplBase():
 
-    def __init__(self, conn, cur):
-        self.conn = conn
-        self.cur = cur
+    def __init__(self, db_connection: DBConnection):
+        self.db_connection = db_connection
 
     def handle_general_sql_execution_error(self, exception_object, sql_string):
         logger.error(f'Error executing the SQL. Error was: {exception_object}')
