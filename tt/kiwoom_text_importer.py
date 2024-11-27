@@ -124,6 +124,7 @@ def build_list_of_simple_transactions(config_filepath):
         except IOError as e:
             logger.error('IOError.', e)
             logger.error('Transaction filepath was: %s' % transaction_filepath)
+            return None
 
         merged = primary_list.copy()
 
