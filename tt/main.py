@@ -125,7 +125,7 @@ def expense_transaction(file):
     control = BankSaladExpenseTransactionControl(global_db_connection)
     result = control.import_and_insert_from_file(file)
     if result:
-        logger.info('Succeded.')
+        logger.info('Succeeded.')
     else:
         logger.info('Failed.')
 
