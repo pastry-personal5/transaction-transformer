@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
 import pprint
-import sys
 
 import click
 from loguru import logger
-import numpy
 import pandas
 from pandas import DataFrame
 
@@ -33,11 +31,12 @@ def extract(file):
     output_file_path = './data/processed.yaml'
     (result, df) = read_input_file(input_file_path)
     if not result:
-        return None
+        return False
     list_of_rules = process(df)
     if not list_of_rules:
-        return None
+        return False
     write_output_file(output_file_path, list_of_rules)
+    return True
 
 
 def read_input_file(input_file_path: str) -> tuple[bool, DataFrame]:
@@ -56,19 +55,13 @@ def read_input_file(input_file_path: str) -> tuple[bool, DataFrame]:
         return (False, None)
 
 
-def process(df: DataFrame):
+def process(df: DataFrame) -> list[Rule]:
     list_of_rules = []
     set_of_rules = set()
     for row in df.itertuples(index=True, name=None):
         if pandas.isna(row[12]):
             continue
         rule = Rule()
-        pprint.pprint('row[4]')
-        pprint.pprint(row[4])
-        pprint.pprint('row[5]')
-        pprint.pprint(row[5])
-        pprint.pprint('row[12]')
-        pprint.pprint(row[12])
         rule.source_category0 = str(row[4])
         rule.source_category1 = str(row[5])
         rule.target_category0 = str(row[12])
@@ -77,10 +70,9 @@ def process(df: DataFrame):
         if tuple_to_test in set_of_rules:
             logger.error('Duplicated rules have been found.')
             pprint.pprint(tuple_to_test)
-            sys.exit(-1)
-        else:
-            set_of_rules.add(tuple_to_test)
+            return None
 
+        set_of_rules.add(tuple_to_test)
         list_of_rules.append(rule)
 
     return list_of_rules
@@ -124,9 +116,9 @@ def write_output_file(output_file_path: str, list_of_rules: list[Rule]):
             else:
                 output_for_source_memo1 = '    memo1:' + lf
             if rule.source_account:
-                output_for_source_account = '    memo1:' + ' ' + rule.source_account + lf
+                output_for_source_account = '    account:' + ' ' + rule.source_account + lf
             else:
-                output_for_source_account = '    memo1:' + lf
+                output_for_source_account = '    account:' + lf
             if rule.target_category0:
                 output_for_target_category0 = '    category0:' + ' ' + rule.target_category0 + lf
             else:
@@ -140,10 +132,11 @@ def write_output_file(output_file_path: str, list_of_rules: list[Rule]):
             fp.write('  - target:' + lf)
             fp.write(output_for_target_category0)
         fp.close()
+        return True
     except IOError as e:
         logger.error('An IO error has been occurred.')
         logger.error(e)
-        return None
+        return False
 
 
 def main():
