@@ -14,7 +14,7 @@ from loguru import logger
 import investing_dot_com_text_exporter
 import kiwoom_text_importer
 
-
+from bank_salad_expense_transaction_importer import BankSaladExpenseTransactionControl
 from db_connection import DBConnection
 from simple_portfolio import SimplePortfolio
 from yahoo_finance_web_exporter import YahooFinanceWebExporter
@@ -113,6 +113,23 @@ def kiwoom_transaction(kiwoom_config):
         do_investing_dot_com_portfolio_export(portfolio)
 
 
+# <program> create expense-transaction
+@create.command()
+@click.option('-f', '--file', required=True, help='A file exported from Bank Salad which contains expense transactions.')
+def expense_transaction(file):
+    """
+    Import a file generated from Bank Salad service which contains expense transactions.
+    """
+    global global_db_connection
+
+    control = BankSaladExpenseTransactionControl(global_db_connection)
+    result = control.import_and_insert_from_file(file)
+    if result:
+        logger.info('Succeded.')
+    else:
+        logger.info('Failed.')
+
+
 @cli.group()
 def export():
     """
@@ -183,7 +200,7 @@ def lazy_init_global_objects(global_config_ir):
         return
     global_flag_initialized_global_objects = True
     global_db_connection = DBConnection(global_config_ir)
-    global_db_connection.connect()
+    global_db_connection.do_initial_setup()
 
 
 def initialize_global_objects():

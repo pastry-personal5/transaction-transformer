@@ -11,6 +11,10 @@ class DBConnection():
         self.conn = None
         self.global_config_ir = global_config_ir
 
+    def do_initial_setup(self):
+        self.connect()
+        self.use_database()
+
     def connect(self):
         assert self.global_config_ir is not None
         host = self.global_config_ir['mariadb']['host']
@@ -27,6 +31,16 @@ class DBConnection():
             self.conn.autocommit = True
         except mariadb.Error as e:
             logger.error(f'Error connecting to the database: {e}')
+            sys.exit(-1)
+
+    def use_database(self):
+        database_name = 'finance'
+        cur = self.cur()
+        sql_string = 'USE' + ' ' + database_name
+        try:
+            cur.execute(sql_string)
+        except mariadb.Error as e:
+            logger.error(f'Error: {e}')
             sys.exit(-1)
 
     def commit(self):

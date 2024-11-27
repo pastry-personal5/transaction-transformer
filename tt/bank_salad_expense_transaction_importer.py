@@ -3,6 +3,7 @@ import datetime
 import pprint
 
 from loguru import logger
+import mariadb
 from pandas import DataFrame
 import pandas
 
@@ -49,11 +50,11 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
             ('type', 'VARCHAR(128)', ''),
             ('category0', 'VARCHAR(128)', ''),
             ('category1', 'VARCHAR(128)', ''),
-            ('memo0', 'VARCHAR(128)', ''),
+            ('memo0', 'VARCHAR(256)', ''),
             ('amount', 'int', ''),
             ('currency', 'VARCHAR(128)', ''),
             ('account', 'VARCHAR(128)', ''),
-            ('memo1', 'VARCHAR(128)', '')
+            ('memo1', 'VARCHAR(256)', '')
         ]
 
     def _get_sql_string_for_table_creation(self):
@@ -65,7 +66,8 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
         sql_string += '(\n'
         sql_string += 'transaction_id int auto_increment, \n'
         for t in self.core_table_definition:
-            sql_string += ' '.join(t(0), t(1), t(2)) + ',\n'
+            logger.info(t)
+            sql_string += ' '.join(t) + ',\n'
         sql_string += 'primary key(transaction_id)\n'
         sql_string += ')\n'
         return sql_string
@@ -73,7 +75,8 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
     def create_table(self) -> bool:
         sql_string = self._get_sql_string_for_table_creation()
         try:
-            self.cur.execute(sql_string)
+            cur = self.db_connection.cur()
+            cur.execute(sql_string)
         except mariadb.Error as e:
             self.handle_general_sql_execution_error(e, sql_string)
             return False
@@ -125,25 +128,27 @@ class BankSaladExpenseTransactionImporter():
 
 class BankSaladExpenseTransactionControl():
 
-    def __init__(self, db_connection: DBConnection):
-        self.bank_salad_expense_transaction_importer = BankSaladExpenseTransactionImporter()
-        self.bank_salad_expense_transaction_db_impl = BankSaladExpenseTransactionDBImpl(db_connection)
+    def __init__(self, db_connection: DBConnection, conversion_rule: dict):
+        self.importer = BankSaladExpenseTransactionImporter()
+        self.db_impl = BankSaladExpenseTransactionDBImpl(db_connection)
+        self.conversion_rule = conversion_rule
 
     def import_and_insert_from_file(self, input_file_path: str) -> bool:
-        list_of_bank_salad_expense_transaction = self.bank_salad_expense_transaction_importer.import_from_file(input_file_path)
+        list_of_bank_salad_expense_transaction = self.importer.import_from_file(input_file_path)
         if not list_of_bank_salad_expense_transaction:
             return False
-        if not self.bank_salad_expense_transaction_db_impl.create_table():
+
+        # Convert
+        list_of_expense_transaction = self._convert(list_of_bank_salad_expense_transaction, self.conversion_rule)
+        if not list_of_expense_transaction:
             return False
-        # @TODO(dennis.oh) insert records...
 
+        # Create a table if needed. Insert records.
+        if not self.db_impl.create_table():
+            return False
+        if not self.db_impl.insert_records(list_of_expense_transaction):
+            return False
+        return True
 
-def main():
-    # @TODO(dennis.oh) Remove main.
-    input_file_path = './data/2024-11-14.xlsx'
-    i = BankSaladExpenseTransactionImporter()
-    list_of_expense_transaction = i.import_from_file(input_file_path)
-
-
-if __name__ == '__main__':
-    main()
+    def _convert(self, source: list[BankSaladExpenseTransaction], conversion_rule: dict) -> list[ExpenseTransaction]:
+        return None
