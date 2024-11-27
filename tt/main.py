@@ -16,6 +16,7 @@ import kiwoom_text_importer
 
 from bank_salad_expense_transaction_importer import BankSaladExpenseTransactionControl
 from db_connection import DBConnection
+from expense_category import ExpenseCategoryControl
 from simple_portfolio import SimplePortfolio
 from yahoo_finance_web_exporter import YahooFinanceWebExporter
 from simple_transaction_db_impl import SimpleTransactionDBImpl
@@ -124,6 +125,47 @@ def expense_transaction(file):
 
     control = BankSaladExpenseTransactionControl(global_db_connection)
     result = control.import_and_insert_from_file(file)
+    if result:
+        logger.info('Succeeded.')
+    else:
+        logger.info('Failed.')
+
+
+# <program> create expense-category
+@create.command()
+@click.option('-f', '--file', required=True, help='A file contains expense category configuration.')
+def expense_category(file):
+    """
+    Create or update records of expense category based on a given file.
+    """
+    global global_db_connection
+
+    control = ExpenseCategoryControl(global_db_connection)
+    result = control.create_or_update(file)
+    if result:
+        logger.info('Succeeded.')
+    else:
+        logger.info('Failed.')
+
+
+@cli.group()
+def delete():
+    """
+    This command deletes an object.
+    """
+    pass
+
+
+# <program> create expense-category
+@delete.command()
+def expense_category():
+    """
+    Create or update records of expense category based on a given file.
+    """
+    global global_db_connection
+
+    control = ExpenseCategoryControl(global_db_connection)
+    result = control.delete()
     if result:
         logger.info('Succeeded.')
     else:
