@@ -1,5 +1,5 @@
-from simple_transaction import SimpleTransaction
-from text_printer_impl_base import TextPrinterImplBase
+from tt.simple_transaction import SimpleTransaction
+from tt.text_printer_impl_base import TextPrinterImplBase
 
 
 class SimpleTransactionTextPrinterImpl(TextPrinterImplBase):

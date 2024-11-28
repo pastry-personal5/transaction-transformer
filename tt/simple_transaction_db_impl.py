@@ -4,9 +4,9 @@ from loguru import logger
 import mariadb
 
 
-from db_connection import DBConnection
-from db_impl_base import DBImplBase
-from simple_transaction import SimpleTransaction
+from tt.db_connection import DBConnection
+from tt.db_impl_base import DBImplBase
+from tt.simple_transaction import SimpleTransaction
 
 
 class SimpleTransactionDBImpl(DBImplBase):

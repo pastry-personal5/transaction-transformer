@@ -1,0 +1,529 @@
+rules:
+  - source:
+      category0: 내계좌이체
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 이체
+  - source:
+      category0: 앱테크
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 수입 앱테크
+  - source:
+      category0: 온라인쇼핑
+      category1: 인터넷쇼핑
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 금융수입
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 수입 이자
+  - source:
+      category0: 카페/간식
+      category1: 커피/음료
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카페·간식
+  - source:
+      category0: 자동차
+      category1: 주유
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 여행/숙박
+      category1: 여행
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 여행·숙박
+  - source:
+      category0: 이체
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 이체
+  - source:
+      category0: 주거/통신
+      category1: 휴대폰
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 주거·통신
+  - source:
+      category0: 주거/통신
+      category1: 전기세
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 식비
+      category1: 식재료
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 생활
+      category1: 마트
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 편의점·마트·잡화
+  - source:
+      category0: 금융
+      category1: 세금/과태료
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 보험·세금·기타금융
+  - source:
+      category0: 자동차
+      category1: 정비/수리
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 저축
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 저축·투자
+  - source:
+      category0: 카드대금
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카드대금
+  - source:
+      category0: 투자
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 저축·투자
+  - source:
+      category0: 자동차
+      category1: 통행료
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 문화/여가
+      category1: 영화
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 생활
+      category1: 생활서비스
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 생활
+  - source:
+      category0: 급여
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 수입 기타
+  - source:
+      category0: 주거/통신
+      category1: 관리비
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 주거·통신
+  - source:
+      category0: 온라인쇼핑
+      category1: 서비스구독
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 온라인쇼핑
+      category1: 앱스토어
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 기타수입
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 수입 기타
+  - source:
+      category0: 식비
+      category1: 중식
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 용돈
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 수입 앱테크
+  - source:
+      category0: 온라인쇼핑
+      category1: 홈쇼핑
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 여행/숙박
+      category1: 항공권
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 여행 교통비
+  - source:
+      category0: 카페/간식
+      category1: 아이스크림/빙수
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카페·간식
+  - source:
+      category0: 문화/여가
+      category1: 전시/관람
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 생활
+      category1: 가구/가전
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 생활
+  - source:
+      category0: 금융
+      category1: 은행
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 저축·투자
+  - source:
+      category0: 주거/통신
+      category1: 인터넷
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 주거·통신
+  - source:
+      category0: 식비
+      category1: 한식
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 생활
+      category1: 생필품
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 생활
+  - source:
+      category0: 미분류
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카테고리 없음
+  - source:
+      category0: 온라인쇼핑
+      category1: 결제/충전
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 금융
+      category1: 카드
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 이체
+  - source:
+      category0: 식비
+      category1: 양식
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 생활
+      category1: 편의점
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 편의점·마트·잡화
+  - source:
+      category0: 식비
+      category1: 일식
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 문화/여가
+      category1: 취미/체험
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 현금
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 이체
+  - source:
+      category0: 의료/건강
+      category1: 종합병원
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 가족 병원비
+  - source:
+      category0: 문화/여가
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 금융
+      category1: 보험
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 보험·세금·기타금융
+  - source:
+      category0: 생활
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 생활
+  - source:
+      category0: 의료/건강
+      category1: 보조식품
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 식비
+      category1: 배달
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 문화/여가
+      category1: 공연
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 문화/여가
+      category1: 테마파크
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가
+  - source:
+      category0: 의료/건강
+      category1: 운동
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 자동차
+      category1: 주차
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 뷰티/미용
+      category1: 화장품
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 술/유흥
+      category1: 유흥시설
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 술·유흥
+  - source:
+      category0: 여행/숙박
+      category1: 숙박비
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 여행·숙박
+  - source:
+      category0: 교통
+      category1: 대중교통
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 교통
+      category1: 시외버스
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 여행 교통비
+  - source:
+      category0: 패션/쇼핑
+      category1: 패션
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 여행/숙박
+      category1: 해외결제
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 여행 숙박비
+  - source:
+      category0: 카페/간식
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카페·간식
+  - source:
+      category0: 경조/선물
+      category1: 선물
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 기부·후원
+  - source:
+      category0: 패션/쇼핑
+      category1: 아울렛/몰
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
+  - source:
+      category0: 주거/통신
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 주거·통신
+  - source:
+      category0: 문화/여가
+      category1: 스포츠
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 취미·여가

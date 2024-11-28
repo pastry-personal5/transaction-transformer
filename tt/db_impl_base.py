@@ -1,10 +1,10 @@
+import datetime
 import sys
 
 from loguru import logger
 import mariadb
 
-from db_connection import DBConnection
-
+from tt.db_connection import DBConnection
 
 class DBImplBase():
 
@@ -37,3 +37,17 @@ class DBImplBase():
 
         # Wrap in quotes for SQL compatibility
         return f'\'{escaped_value}\''
+
+    def convert_datetime_to_sql_string(self, dt: datetime) -> str:
+        """Convert a Python datetime object to an SQL string for insertion.
+
+        Args:
+            dt (datetime): The datetime object to convert.
+
+        Returns:
+            str: Formatted SQL datetime string or 'NULL' if input is None.
+        """
+        if dt is None:
+            return 'NULL'
+
+        return f'\'{dt.strftime('%Y-%m-%d %H:%M:%S')}\''

@@ -11,16 +11,16 @@ import yaml
 import click
 from loguru import logger
 
-import investing_dot_com_text_exporter
-import kiwoom_text_importer
+import tt.investing_dot_com_text_exporter
+import tt.kiwoom_text_importer
 
-from bank_salad_expense_transaction_importer import BankSaladExpenseTransactionControl
-from db_connection import DBConnection
-from expense_category import ExpenseCategoryControl
-from simple_portfolio import SimplePortfolio
-from yahoo_finance_web_exporter import YahooFinanceWebExporter
-from simple_transaction_db_impl import SimpleTransactionDBImpl
-from simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
+from tt.expense_transaction import BankSaladExpenseTransactionControl
+from tt.db_connection import DBConnection
+from tt.expense_category import ExpenseCategoryControl
+from tt.simple_portfolio import SimplePortfolio
+from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
+from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
+from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
 
 
 global_flag_initialized_global_objects = False
@@ -39,7 +39,7 @@ def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
     try:
         output_file_path = './data/investing_dot_com_portfolio.txt'
         f = open(output_file_path, 'w', encoding='utf-8')
-        investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
+        tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
         f.close()
     except IOError as e:
         logger.error(f'IOError: {e}')
@@ -97,7 +97,7 @@ def kiwoom_transaction(kiwoom_config):
         list_of_simple_transactions = None
 
         try:
-            list_of_simple_transactions = kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
+            list_of_simple_transactions = tt.kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
             if not list_of_simple_transactions:
                 sys.exit(-1)
         except IOError as e:

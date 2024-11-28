@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from simple_portfolio import SimplePortfolio
+from tt.simple_portfolio import SimplePortfolio
 
 
 class WebClientContext:

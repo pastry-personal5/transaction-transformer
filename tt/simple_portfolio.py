@@ -1,6 +1,6 @@
 from loguru import logger
 
-from simple_transaction import SimpleTransaction
+from tt.simple_transaction import SimpleTransaction
 
 
 class SimplePortfolio():

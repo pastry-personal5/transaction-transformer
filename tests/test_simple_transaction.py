@@ -1,6 +1,7 @@
 import unittest
 import datetime
-from simple_transaction import SimpleTransaction
+
+from tt.simple_transaction import SimpleTransaction
 
 
 class TestSimpleTransaction(unittest.TestCase):

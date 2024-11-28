@@ -100,36 +100,36 @@ def write_output_file(output_file_path: str, list_of_rules: list[Rule]):
         fp.write(header)
         for rule in list_of_rules:
             if rule.source_category0:
-                output_for_source_category0 = '    category0:' + ' ' + rule.source_category0 + lf
+                output_for_source_category0 = '      category0:' + ' ' + rule.source_category0 + lf
             else:
-                output_for_source_category0 = '    category0:' + lf
+                output_for_source_category0 = '      category0:' + lf
             if rule.source_category1:
-                output_for_source_category1 = '    category1:' + ' ' + rule.source_category1 + lf
+                output_for_source_category1 = '      category1:' + ' ' + rule.source_category1 + lf
             else:
-                output_for_source_category1 = '    category1:' + lf
+                output_for_source_category1 = '      category1:' + lf
             if rule.source_memo0:
-                output_for_source_memo0 = '    memo0:' + ' ' + rule.source_memo0 + lf
+                output_for_source_memo0 = '      memo0:' + ' ' + rule.source_memo0 + lf
             else:
-                output_for_source_memo0 = '    memo0:' + lf
+                output_for_source_memo0 = '      memo0:' + lf
             if rule.source_memo1:
-                output_for_source_memo1 = '    memo1:' + ' ' + rule.source_memo1 + lf
+                output_for_source_memo1 = '      memo1:' + ' ' + rule.source_memo1 + lf
             else:
-                output_for_source_memo1 = '    memo1:' + lf
+                output_for_source_memo1 = '      memo1:' + lf
             if rule.source_account:
-                output_for_source_account = '    account:' + ' ' + rule.source_account + lf
+                output_for_source_account = '      account:' + ' ' + rule.source_account + lf
             else:
-                output_for_source_account = '    account:' + lf
+                output_for_source_account = '      account:' + lf
             if rule.target_category0:
-                output_for_target_category0 = '    category0:' + ' ' + rule.target_category0 + lf
+                output_for_target_category0 = '      category0:' + ' ' + rule.target_category0 + lf
             else:
-                output_for_target_category0 = '    category0:' + lf
+                output_for_target_category0 = '      category0:' + lf
             fp.write('  - source:' + lf)
             fp.write(output_for_source_category0)
             fp.write(output_for_source_category1)
             fp.write(output_for_source_memo0)
             fp.write(output_for_source_account)
             fp.write(output_for_source_memo1)
-            fp.write('  - target:' + lf)
+            fp.write('    target:' + lf)
             fp.write(output_for_target_category0)
         fp.close()
         return True

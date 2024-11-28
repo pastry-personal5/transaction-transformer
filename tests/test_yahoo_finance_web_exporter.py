@@ -5,7 +5,7 @@ A chatgpt-4o-generated unittest in 2024.
 import unittest
 from unittest.mock import patch
 
-from yahoo_finance_web_exporter import YahooFinanceWebExporter
+from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
 
 
 class TestYahooFinanceWebExporter(unittest.TestCase):

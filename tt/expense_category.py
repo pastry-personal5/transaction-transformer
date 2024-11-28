@@ -5,8 +5,8 @@ import yaml
 from loguru import logger
 import mariadb
 
-from db_connection import DBConnection
-from db_impl_base import DBImplBase
+from tt.db_connection import DBConnection
+from tt.db_impl_base import DBImplBase
 
 
 class ExpenseCategory():
