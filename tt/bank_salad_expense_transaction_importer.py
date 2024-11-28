@@ -70,6 +70,7 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
             sql_string += ' '.join(t) + ',\n'
         sql_string += 'primary key(transaction_id)\n'
         sql_string += ')\n'
+        sql_String += 'CHARACTER SET \'utf8\';'
         return sql_string
 
     def create_table(self) -> bool:
