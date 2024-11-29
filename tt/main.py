@@ -124,7 +124,7 @@ def expense_transaction(file):
     global global_db_connection
 
     control = ExpenseTransactionControl(global_db_connection)
-    result = control.import_and_insert_from_file(file)
+    result = control.import_and_append_from_file(file)
     if result:
         logger.info('Succeeded.')
     else:
