@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -x
+
 python -m tt.main \
 create \
 expense-transaction \
--f ./data/2024-11-14.xlsx
+-f ./data/account0000-2024-11-14.xlsx
+
+python -m tt.main \
+create \
+expense-transaction \
+-f ./data/account0001-2024-11-16.xlsx
+
+python -m tt.main \
+create \
+expense-transaction \
+-f ./data/account0000-2024-11-29.xlsx

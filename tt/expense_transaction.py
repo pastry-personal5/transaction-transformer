@@ -28,6 +28,30 @@ class ExpenseTransaction():
     def __str__(self):
         return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account})'
 
+    def __eq__(self, other):
+        if isinstance(other, ExpenseTransaction):
+            return self.amount == other.amount \
+                and self.category0 == other.category0 \
+                and self.category1 == other.category1 \
+                and self.currency == other.currency \
+                and self.memo0 == other.memo0 \
+                and self.memo1 == other.memo1 \
+                and self.source_account == other.source_account \
+                and self.target_account == other.target_account \
+                and self.transaction_datetime == other.transaction_datetime
+        return False
+
+    def __hash__(self):
+        return hash((self.amount, \
+            self.category0, \
+            self.category1, \
+            self.currency, \
+            self.memo0, \
+            self.memo1, \
+            self.source_account, \
+            self.target_account, \
+            self.transaction_datetime))
+
 
 class BankSaladExpenseTransaction():
 
@@ -139,6 +163,30 @@ class ExpenseTransactionDBImpl(DBImplBase):
                 return False
         return True
 
+    def get_all(self) -> list[ExpenseTransaction]:
+        cur = self.db_connection.cur()
+        sql_string = 'SELECT transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1 FROM'
+        sql_string += ' ' + self.table_name + ';'
+        list_of_transaction = []
+        try:
+            cur.execute(sql_string)
+            for (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1) in cur:
+                t = ExpenseTransaction()
+                t.transaction_datetime = transaction_datetime
+                t.category0 = category0
+                t.category1 = category1
+                t.memo0 = memo0
+                t.amount = amount
+                t.currency = currency
+                t.source_account = source_account
+                t.target_account = target_account
+                t.memo1 = memo1
+                list_of_transaction.append(t)
+        except mariadb.Error as e:
+            self.handle_general_sql_execution_error(e, sql_string)
+            return None
+        return list_of_transaction
+
 
 class BankSaladExpenseTransactionImporter():
 
@@ -206,9 +254,25 @@ class ExpenseTransactionControl():
         # Create a table if needed. Insert records.
         if not self.db_impl.create_table():
             return False
-        if not self.db_impl.insert_records(list_of_expense_transaction):
+        list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_expense_transaction)
+        if not self.db_impl.insert_records(list_of_expense_transaction_to_be_appended):
             return False
         return True
+
+    def _get_list_of_expense_transaction_to_be_appended(self, source_list: list[ExpenseTransaction]) -> list[ExpenseTransaction]:
+        target_list = self.db_impl.get_all()
+        len_target = len(target_list)
+        len_source = len(source_list)
+        logger.info(f'The length of target_list is ({len_target})')
+        logger.info(f'The length of source_list is ({len_source})')
+        set_target = set(target_list)
+        set_source = set(source_list)
+        # Find element in set_source that are not in set_target
+        difference_set = set_source - set_target
+        list_to_return = list(difference_set)
+        len_of_list_to_return = len(list_to_return)
+        logger.info(f'The length of list_to_return is ({len_of_list_to_return})')
+        return list_to_return
 
     def delete(self) -> bool:
         return self.db_impl.drop_table()
