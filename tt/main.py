@@ -14,7 +14,7 @@ from loguru import logger
 import tt.investing_dot_com_text_exporter
 import tt.kiwoom_text_importer
 
-from tt.expense_transaction import BankSaladExpenseTransactionControl
+from tt.expense_transaction import ExpenseTransactionControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
 from tt.simple_portfolio import SimplePortfolio
@@ -123,7 +123,7 @@ def expense_transaction(file):
     """
     global global_db_connection
 
-    control = BankSaladExpenseTransactionControl(global_db_connection)
+    control = ExpenseTransactionControl(global_db_connection)
     result = control.import_and_insert_from_file(file)
     if result:
         logger.info('Succeeded.')
@@ -156,7 +156,7 @@ def delete():
     pass
 
 
-# <program> create expense-category
+# <program> delete expense-category
 @delete.command()
 def expense_category():
     """
@@ -171,6 +171,21 @@ def expense_category():
     else:
         logger.info('Failed.')
 
+
+# <program> delete expense-category
+@delete.command()
+def expense_transaction():
+    """
+    Delete data or drop a table w.r.t. expense transactions.
+    """
+    global global_db_connection
+
+    control = ExpenseTransactionControl(global_db_connection)
+    result = control.delete()
+    if result:
+        logger.info('Succeeded.')
+    else:
+        logger.info('Failed.')
 
 @cli.group()
 def export():

@@ -23,11 +23,11 @@ class TestExpenseTransactionDBImpl(unittest.TestCase):
         cur_mock.execute.assert_called_once()
 
 
-class TestBankSaladExpenseTransactionControl(unittest.TestCase):
+class TestExpenseTransactionControl(unittest.TestCase):
 
     def setUp(self):
         self.mock_db_connection = MagicMock(spec=DBConnection)
-        self.control = BankSaladExpenseTransactionControl(self.mock_db_connection)
+        self.control = ExpenseTransactionControl(self.mock_db_connection)
 
     def test_conversion(self):
         mock_transaction = BankSaladExpenseTransaction()

@@ -79,8 +79,22 @@ class ExpenseTransactionDBImpl(DBImplBase):
         sql_string += 'CHARACTER SET \'utf8\';'
         return sql_string
 
+    def _get_sql_string_for_table_deletion(self):
+        sql_string = 'DROP TABLE ' + self.table_name + ';'
+        return sql_string
+
     def create_table(self) -> bool:
         sql_string = self._get_sql_string_for_table_creation()
+        try:
+            cur = self.db_connection.cur()
+            cur.execute(sql_string)
+        except mariadb.Error as e:
+            self.handle_general_sql_execution_error(e, sql_string)
+            return False
+        return True
+
+    def drop_table(self) -> bool:
+        sql_string = self._get_sql_string_for_table_deletion()
         try:
             cur = self.db_connection.cur()
             cur.execute(sql_string)
@@ -172,7 +186,7 @@ class BankSaladExpenseTransactionImporter():
         return list_of_expense_transaction
 
 
-class BankSaladExpenseTransactionControl():
+class ExpenseTransactionControl():
 
     def __init__(self, db_connection: DBConnection):
         self.importer = BankSaladExpenseTransactionImporter()
@@ -195,6 +209,9 @@ class BankSaladExpenseTransactionControl():
         if not self.db_impl.insert_records(list_of_expense_transaction):
             return False
         return True
+
+    def delete(self) -> bool:
+        return self.db_impl.drop_table()
 
     def _load_conversion_rule(self):
         conversion_rule_file_path = './config/conversion_rule.yaml'
