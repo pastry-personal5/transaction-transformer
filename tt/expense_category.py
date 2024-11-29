@@ -113,7 +113,7 @@ class ExpenseCategoryControl():
     def __init__(self, db_connection: DBConnection):
         self.db_impl = ExpenseCategoryDBImpl(db_connection)
 
-    def create_or_update(self, category_config_file_path: str) -> bool:
+    def import_and_append_from_file(self, category_config_file_path: str) -> bool:
 
         if not self.db_impl.start_using_database():
             return False

@@ -141,7 +141,7 @@ def expense_category(file):
     global global_db_connection
 
     control = ExpenseCategoryControl(global_db_connection)
-    result = control.create_or_update(file)
+    result = control.import_and_append_from_file(file)
     if result:
         logger.info('Succeeded.')
     else:
