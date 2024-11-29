@@ -32,15 +32,15 @@ class ExpenseTransaction():
 class BankSaladExpenseTransaction():
 
     def __init__(self):
+        self.account = None
+        self.amount = 0
+        self.category0 = None
+        self.category1 = None
+        self.currency = None
         self.date = None  # datetime.date
         self.time = None  # datetime.time
         self.type = None
-        self.category0 = None
-        self.category1 = None
         self.memo0 = None
-        self.amount = 0
-        self.currency = None
-        self.account = None
         self.memo1 = None
 
     def __str__(self):
