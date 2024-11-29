@@ -14,3 +14,21 @@ As of 2024-03-26, these services provide APIs.
 
 As of 2024-03-26, investing.com provide an portfolio importing feature.
 
+# How to Run
+
+```bash
+python -m venv venv
+source 0
+pip install -r requirements.txt
+```
+
+Then, look for bash scripts such as `1`, `2`, etc.
+
+# How to Develop
+
+```bash
+pip install -r dev-requirements.txt
+```
+
+
+
