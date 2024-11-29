@@ -527,3 +527,92 @@ rules:
       memo1:
     target:
       category0: 취미·여가
+# from osh-2024-11-16
+  - source:
+      category0: 의료/건강
+      category1: 기타병원
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 의료/건강
+      category1: 약국
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 의료/건강
+      category1: 안과
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 의료/건강
+      category1: 비뇨기과
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 의료/건강
+      category1: 치과
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 교통
+      category1: 택시
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 교통·자동차
+  - source:
+      category0: 식비
+      category1: 치킨
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 식비
+      category1: 피자
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 식비
+  - source:
+      category0: 의료/건강
+      category1: 건강용품
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 의료·건강·피트니스
+  - source:
+      category0: 카페/간식
+      category1: 기타간식
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카페·간식
+  - source:
+      category0: 패션/쇼핑
+      category1: 백화점
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 쇼핑
