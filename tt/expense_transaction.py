@@ -95,10 +95,10 @@ class ExpenseTransactionDBImpl(DBImplBase):
         sql_string += self.table_name
         sql_string += ' '
         sql_string += '(\n'
-        sql_string += 'transaction_id int auto_increment, \n'
+        sql_string += 'id bigint auto_increment, \n'
         for t in self.core_table_definition:
             sql_string += ' '.join(t) + ',\n'
-        sql_string += 'primary key(transaction_id)\n'
+        sql_string += 'primary key(id)\n'
         sql_string += ')\n'
         sql_string += 'CHARACTER SET \'utf8\';'
         return sql_string

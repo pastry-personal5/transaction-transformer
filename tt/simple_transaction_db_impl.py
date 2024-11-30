@@ -118,14 +118,14 @@ class SimpleTransactionDBImpl(DBImplBase):
             sql_string = 'USE finance;'
             cur.execute(sql_string)
             sql_string = 'CREATE TABLE IF NOT EXISTS simple_transactions(\n' \
-                'transaction_id int auto_increment,\n' \
+                'id bigint auto_increment,\n' \
                 'amount float,\n' \
                 'commission float,\n' \
                 'open_date date,\n' \
                 'open_price float,\n' \
                 'symbol varchar(512) not null,\n' \
                 'transaction_type varchar(512) not null,\n' \
-                'primary key(transaction_id)\n' \
+                'primary key(id)\n' \
                 ');\n'
             cur.execute(sql_string)
         except mariadb.Error as e:
