@@ -9,6 +9,7 @@ from tt.db_connection import DBConnection
 class DBImplBase():
 
     def __init__(self, db_connection: DBConnection):
+        self.const_default_table_charset = 'utf8mb4'
         self.db_connection = db_connection
 
     def handle_general_sql_execution_error(self, exception_object, sql_string):

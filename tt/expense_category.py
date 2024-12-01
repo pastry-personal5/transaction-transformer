@@ -16,6 +16,17 @@ class ExpenseCategory():
         self.uuid = None
         self.name = None
 
+    def __eq__(self, other):
+        if isinstance(other, ExpenseCategory):
+            return self.user_identifier == other.user_identifier \
+                and self.uuid == other.uuid \
+                and self.name == other.name
+        return False
+
+    def __hash__(self):
+        return hash((self.user_identifier, \
+            self.uuid, \
+            self.name))
 
 class ExpenseCategoryDBImpl(DBImplBase):
 
@@ -42,19 +53,9 @@ class ExpenseCategoryDBImpl(DBImplBase):
             'user_identifier varchar(128) not null,\n'\
             'uuid varchar(128) not null,\n'\
             'name varchar(128) not null\n'\
-            ')\n' \
-            'CHARACTER SET \'utf8\';'
+            ')\n'
+        sql_string += f'CHARACTER SET \'{self.const_default_table_charset}\';'
         logger.info(sql_string)
-        try:
-            cur.execute(sql_string)
-        except mariadb.Error as e:
-            self.handle_general_sql_execution_error(e, sql_string)
-            return False
-        return True
-
-    def start_using_database(self) -> bool:
-        cur = self.db_connection.cur()
-        sql_string = 'use finance;'
         try:
             cur.execute(sql_string)
         except mariadb.Error as e:
@@ -114,9 +115,6 @@ class ExpenseCategoryControl():
         self.db_impl = ExpenseCategoryDBImpl(db_connection)
 
     def import_and_append_from_file(self, category_config_file_path: str) -> bool:
-
-        if not self.db_impl.start_using_database():
-            return False
         if not self.db_impl.create_table():
             return False
 
@@ -130,30 +128,32 @@ class ExpenseCategoryControl():
         return True
 
     def delete(self) -> bool:
-        if not self.db_impl.start_using_database():
-            return False
         return self.db_impl.drop_table()
 
-    def _get_list_of_records_to_insert(self, user_identifier: str, source0: list[ExpenseCategory], source1: list[ExpenseCategory]) -> list[str]:
-        existing_uuid_set = self._get_existing_uuid_set(user_identifier)
-        # @FIXME(dennis.oh) Improve performance
+    def _get_list_of_records_to_insert(self, user_identifier: str, source0: list[ExpenseCategory], source1: list[str]) -> list[str]:
+        # Get the diff.
+        set_of_names_from_source0 = set()
+        for item in source0:
+            set_of_names_from_source0.add(item.name)
+        set_of_names_from_source1 = set()
+        for name in source1:
+            set_of_names_from_source1.add(name)
+        logger.info(f'set_of_source0. length({len(set_of_names_from_source0)})')
+        logger.info(f'set_of_source1. length({len(set_of_names_from_source1)})')
+        set_of_diff = set_of_names_from_source1 - set_of_names_from_source0
+        list_of_diff = list(set_of_diff)
+
+        # Build a list to return.
         list_to_return = []
-        for name1 in source1:
-
-            logger.info(f'Searching for {name1}')
-            flag_found = False
-            for item0 in source0:
-                if item0.user_identifier == user_identifier and item0.name == name1:
-                    flag_found = True
-                    break
-
-            if not flag_found:
-                logger.info(f'Not found: {name1}')
-                new_expense_category = ExpenseCategory()
-                new_expense_category.user_identifier = user_identifier
-                new_expense_category.uuid = self._get_random_pseudo_uuid_for_expense_category(existing_uuid_set)
-                new_expense_category.name = name1
-                list_to_return.append(new_expense_category)
+        existing_uuid_set = self._get_existing_uuid_set(user_identifier)
+        for name in list_of_diff:
+            logger.info(f'Adding {name}...')
+            new_expense_category = ExpenseCategory()
+            new_expense_category.user_identifier = user_identifier
+            new_expense_category.uuid = self._get_random_pseudo_uuid_for_expense_category(existing_uuid_set)
+            new_expense_category.name = name
+            list_to_return.append(new_expense_category)
+        logger.info(f'The length of list_to_return is {len(list_to_return)}')
         return list_to_return
 
     def _get_existing_uuid_set(self, user_identifier: str) -> set[str]:
