@@ -108,7 +108,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
                 cur.execute(sql_string)
             except mariadb.Error as e:
                 self.handle_general_sql_execution_error(e, sql_string)
-                return FAlse
+                return False
         return True
 
     def drop_table(self) -> bool:
