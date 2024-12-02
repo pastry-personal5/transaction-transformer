@@ -17,7 +17,7 @@ import tt.kiwoom_text_importer
 from tt.expense_transaction import ExpenseTransactionControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
-from tt.expense_category import ExepenseCategoryTextPrinterImpl
+from tt.expense_category import ExpenseCategoryTextPrinterImpl
 from tt.simple_portfolio import SimplePortfolio
 from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
@@ -217,7 +217,7 @@ def get():
 @click.option('--symbol', help='Stock symbol to match.')
 def simple_transaction(symbol):
     """
-    Display a list of simple transaction records
+    List simple transactions.
     """
     global global_db_connection
 
@@ -239,7 +239,7 @@ def simple_transaction(symbol):
 #<program> get expense-category --user-identifier <USER IDENTIFIER>
 @get.command()
 @click.option('--user-identifier', help='User identifier')
-def exepense_category(user_identifier):
+def expense_category(user_identifier):
     """
     List expense categories.
     """
@@ -250,11 +250,11 @@ def exepense_category(user_identifier):
     control = ExpenseCategoryControl(global_db_connection)
     if user_identifier:
         list_of_expense_category = control.get_all_filtered_by_user_identifier(user_identifier)
-        printer_impl = ExepenseCategoryTextPrinterImpl()
+        printer_impl = ExpenseCategoryTextPrinterImpl()
         printer_impl.print_all(list_of_expense_category)
     else:
         list_of_expense_category = control.get_all()
-        printer_impl = ExepenseCategoryTextPrinterImpl()
+        printer_impl = ExpenseCategoryTextPrinterImpl()
         printer_impl.print_all(list_of_expense_category)
 
 

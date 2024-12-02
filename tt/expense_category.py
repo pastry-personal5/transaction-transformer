@@ -32,7 +32,7 @@ class ExpenseCategory():
         return f'user_identifier({self.user_identifier}) uuid({self.uuid}) name({self.name})'
 
 
-class ExepenseCategoryTextPrinterImpl():
+class ExpenseCategoryTextPrinterImpl():
 
     def __init__(self):
         pass
