@@ -118,14 +118,15 @@ def kiwoom_transaction(kiwoom_config):
 # <program> create expense-transaction
 @create.command()
 @click.option('-f', '--file', required=True, help='A file exported from Bank Salad which contains expense transactions.')
-def expense_transaction(file):
+@click.option('-u', '--user-identifier', required=True, help='A user identifier.')
+def expense_transaction(file: str, user_identifier: str):
     """
     Import a file generated from Bank Salad service which contains expense transactions.
     """
     global global_db_connection
 
     control = ExpenseTransactionControl(global_db_connection)
-    result = control.import_and_append_from_file(file)
+    result = control.import_and_append_from_file(file, user_identifier)
     if result:
         logger.info('Succeeded.')
     else:

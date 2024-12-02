@@ -14,6 +14,8 @@ from tt.db_impl_base import DBImplBase
 
 class ExpenseTransaction():
 
+    CORE_FIELD_LENGTH = 10  # The length of items - account, amount, etc.
+
     def __init__(self):
         self.amount = 0
         self.category0 = None
@@ -24,9 +26,10 @@ class ExpenseTransaction():
         self.source_account = None
         self.target_account = None
         self.transaction_datetime = None  # datetime.datetime
+        self.user_identifier = None
 
     def __str__(self):
-        return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account})'
+        return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account}) user_identifier({self.user_identifier})'
 
     def __eq__(self, other):
         if isinstance(other, ExpenseTransaction):
@@ -38,22 +41,26 @@ class ExpenseTransaction():
                 and self.memo1 == other.memo1 \
                 and self.source_account == other.source_account \
                 and self.target_account == other.target_account \
-                and self.transaction_datetime == other.transaction_datetime
+                and self.transaction_datetime == other.transaction_datetime \
+                and self.user_identifier == other.user_identifier
         return False
 
     def __hash__(self):
-        return hash((self.amount, \
-            self.category0, \
-            self.category1, \
-            self.currency, \
-            self.memo0, \
-            self.memo1, \
-            self.source_account, \
-            self.target_account, \
-            self.transaction_datetime))
+        return hash((self.amount,
+            self.category0,
+            self.category1,
+            self.currency,
+            self.memo0,
+            self.memo1,
+            self.source_account,
+            self.target_account,
+            self.transaction_datetime,
+            self.user_identifier))
 
 
 class BankSaladExpenseTransaction():
+
+    CORE_FIELD_LENGTH = 11  # The length of items - account, amount, etc.
 
     def __init__(self):
         self.account = None
@@ -66,9 +73,10 @@ class BankSaladExpenseTransaction():
         self.type = None
         self.memo0 = None
         self.memo1 = None
+        self.user_identifier = None
 
     def __str__(self):
-        return f'date({self.date}) time({self.time}) type({self.type}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) amount({self.amount}) currency({self.currency}) account({self.account}) memo1({self.memo1})'
+        return f'date({self.date}) time({self.time}) type({self.type}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) amount({self.amount}) currency({self.currency}) account({self.account}) memo1({self.memo1} user_identifier({self.user_identifier}))'
 
 
 class ExpenseTransactionDBImpl(DBImplBase):
@@ -85,8 +93,11 @@ class ExpenseTransactionDBImpl(DBImplBase):
             ('currency', 'VARCHAR(128)', ''),
             ('source_account', 'VARCHAR(128)', ''),
             ('target_account', 'VARCHAR(128)', ''),
-            ('memo1', 'VARCHAR(256)', '')
+            ('memo1', 'VARCHAR(256)', ''),
+            ('user_identifier', 'VARCHAR(128)', ''),
         ]
+
+        assert len(self.core_table_definition) == ExpenseTransaction.CORE_FIELD_LENGTH
 
     def _get_sql_string_for_table_creation(self):
         sql_string = ''
@@ -100,7 +111,7 @@ class ExpenseTransactionDBImpl(DBImplBase):
             sql_string += ' '.join(t) + ',\n'
         sql_string += 'primary key(id)\n'
         sql_string += ')\n'
-        sql_string += 'CHARACTER SET \'utf8\';'
+        sql_string += f'CHARACTER SET \'{self.const_default_table_charset}\';'
         return sql_string
 
     def _get_sql_string_for_table_deletion(self):
@@ -138,8 +149,9 @@ class ExpenseTransactionDBImpl(DBImplBase):
         values['source_account'] = self.escape_sql_string(t.source_account)
         values['target_account'] = self.escape_sql_string(t.target_account)
         values['memo1'] = self.escape_sql_string(t.memo1)
+        values['user_identifier'] = self.escape_sql_string(t.user_identifier)
         sql_string = f'INSERT INTO {self.table_name}'
-        sql_string += ' (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1) VALUES ('
+        sql_string += ' (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier) VALUES ('
         sql_string += f' {values['transaction_datetime']},'
         sql_string += f' {values['category0']},'
         sql_string += f' {values['category1']},'
@@ -148,7 +160,8 @@ class ExpenseTransactionDBImpl(DBImplBase):
         sql_string += f' {values['currency']},'
         sql_string += f' {values['source_account']},'
         sql_string += f' {values['target_account']},'
-        sql_string += f' {values['memo1']}'
+        sql_string += f' {values['memo1']},'
+        sql_string += f' {values['user_identifier']}'
         sql_string += ');'
         return sql_string
 
@@ -165,12 +178,12 @@ class ExpenseTransactionDBImpl(DBImplBase):
 
     def get_all(self) -> list[ExpenseTransaction]:
         cur = self.db_connection.cur()
-        sql_string = 'SELECT transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1 FROM'
+        sql_string = 'SELECT transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier FROM'
         sql_string += ' ' + self.table_name + ';'
         list_of_transaction = []
         try:
             cur.execute(sql_string)
-            for (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1) in cur:
+            for (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier) in cur:
                 t = ExpenseTransaction()
                 t.transaction_datetime = transaction_datetime
                 t.category0 = category0
@@ -181,6 +194,7 @@ class ExpenseTransactionDBImpl(DBImplBase):
                 t.source_account = source_account
                 t.target_account = target_account
                 t.memo1 = memo1
+                t.user_identifier = user_identifier
                 list_of_transaction.append(t)
         except mariadb.Error as e:
             self.handle_general_sql_execution_error(e, sql_string)
@@ -193,7 +207,7 @@ class BankSaladExpenseTransactionImporter():
     def __init__(self):
         pass
 
-    def import_from_file(self, input_file_path: str) -> list[BankSaladExpenseTransaction]:
+    def import_from_file(self, input_file_path: str, user_identifier: str) -> list[BankSaladExpenseTransaction]:
         logger.info(f'Try to import from a file path ({input_file_path})...')
         try:
             fp = open(input_file_path, 'rb')
@@ -209,9 +223,9 @@ class BankSaladExpenseTransactionImporter():
             logger.error('An IO error has been occurred.')
             logger.error(e)
             return None
-        return self._bulid_expense_transaction(df)
+        return self._bulid_expense_transaction(df, user_identifier)
 
-    def _bulid_expense_transaction(self, df: DataFrame) -> list[BankSaladExpenseTransaction]:
+    def _bulid_expense_transaction(self, df: DataFrame, user_identifier: str) -> list[BankSaladExpenseTransaction]:
         list_of_expense_transaction = []
         for row in df.itertuples(index=True, name=None):
             t = BankSaladExpenseTransaction()
@@ -229,6 +243,7 @@ class BankSaladExpenseTransactionImporter():
                 t.memo1 = None
             else:
                 t.memo1 = row[10]
+            t.user_identifier = user_identifier
             list_of_expense_transaction.append(t)
 
         return list_of_expense_transaction
@@ -241,8 +256,8 @@ class ExpenseTransactionControl():
         self.db_impl = ExpenseTransactionDBImpl(db_connection)
         self.conversion_rule = self._load_conversion_rule()
 
-    def import_and_append_from_file(self, input_file_path: str) -> bool:
-        list_of_bank_salad_expense_transaction = self.importer.import_from_file(input_file_path)
+    def import_and_append_from_file(self, input_file_path: str, user_identifier: str) -> bool:
+        list_of_bank_salad_expense_transaction = self.importer.import_from_file(input_file_path, user_identifier)
         if not list_of_bank_salad_expense_transaction:
             return False
 
@@ -303,6 +318,7 @@ class ExpenseTransactionControl():
             t.target_account = None
             t.memo0 = item.memo0
             t.memo1 = item.memo1
+            t.user_identifier = item.user_identifier
 
             list_of_expense_transaction.append(t)
 
