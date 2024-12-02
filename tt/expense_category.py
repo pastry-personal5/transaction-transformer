@@ -46,11 +46,12 @@ class ExpenseCategoryDBImpl(DBImplBase):
 
     def __init__(self, db_connection: DBConnection):
         super().__init__(db_connection)
+        self.table_name = 'expense_categories'
 
     def get_all(self) -> list[ExpenseCategory]:
         list_of_expense_category = []
         cur = self.db_connection.cur()
-        sql_string = 'SELECT user_identifier, uuid, name FROM expense_category;'
+        sql_string = f'SELECT user_identifier, uuid, name FROM {self.table_name};'
         logger.info(sql_string)
         cur.execute(sql_string)
         for (user_identifier, uuid, name) in cur:
@@ -63,7 +64,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
 
     def create_table(self) -> bool:
         cur = self.db_connection.cur()
-        sql_string = 'CREATE TABLE IF NOT EXISTS expense_category(\n' \
+        sql_string = f'CREATE TABLE IF NOT EXISTS {self.table_name}(\n' \
             'user_identifier varchar(128) not null,\n'\
             'uuid varchar(128) not null,\n'\
             'name varchar(128) not null\n'\
@@ -80,7 +81,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
     def get_all_filtered_by_user_identifier(self, user_identifier: str) -> list[ExpenseCategory]:
         cur = self.db_connection.cur()
         escaped_user_identifier = self.escape_sql_string(user_identifier)
-        sql_string = f'SELECT user_identifier, uuid, name FROM expense_category WHERE user_identifier={escaped_user_identifier}'
+        sql_string = f'SELECT user_identifier, uuid, name FROM {self.table_name} WHERE user_identifier={escaped_user_identifier}'
         logger.info(sql_string)
         list_of_expense_category = []
         try:
@@ -102,7 +103,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
             escaped_user_identifier = self.escape_sql_string(item.user_identifier)
             escaped_uuid = self.escape_sql_string(item.uuid)
             escaped_name = self.escape_sql_string(item.name)
-            sql_string = f'INSERT INTO expense_category (user_identifier, uuid, name) VALUES({escaped_user_identifier}, {escaped_uuid}, {escaped_name})'
+            sql_string = f'INSERT INTO {self.table_name} (user_identifier, uuid, name) VALUES({escaped_user_identifier}, {escaped_uuid}, {escaped_name})'
             logger.info(sql_string)
             try:
                 cur.execute(sql_string)
@@ -113,7 +114,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
 
     def drop_table(self) -> bool:
         cur = self.db_connection.cur()
-        sql_string = 'DROP TABLE expense_category;'
+        sql_string = f'DROP TABLE {self.table_name};'
         logger.info(sql_string)
         try:
             cur.execute(sql_string)
