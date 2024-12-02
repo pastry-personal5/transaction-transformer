@@ -1,3 +1,4 @@
+import pprint
 import random
 import yaml
 
@@ -23,9 +24,23 @@ class ExpenseCategory():
         return False
 
     def __hash__(self):
-        return hash((self.user_identifier, \
-            self.uuid, \
-            self.name))
+        return hash((self.user_identifier,
+                    self.uuid,
+                    self.name))
+
+    def __str__(self):
+        return f'user_identifier({self.user_identifier}) uuid({self.uuid}) name({self.name})'
+
+
+class ExepenseCategoryTextPrinterImpl():
+
+    def __init__(self):
+        pass
+
+    def print_all(self, list_of_expense_category: list[ExpenseCategory]):
+        for e in list_of_expense_category:
+            print(pprint.pformat(str(e)))
+
 
 class ExpenseCategoryDBImpl(DBImplBase):
 
@@ -33,7 +48,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
         super().__init__(db_connection)
 
     def get_all(self) -> list[ExpenseCategory]:
-        list_of_expense_category_ir = []
+        list_of_expense_category = []
         cur = self.db_connection.cur()
         sql_string = 'SELECT user_identifier, uuid, name FROM expense_category;'
         logger.info(sql_string)
@@ -43,7 +58,7 @@ class ExpenseCategoryDBImpl(DBImplBase):
             e.user_identifier = user_identifier
             e.uuid = uuid
             e.name = name
-            list_of_expense_category.append(t)
+            list_of_expense_category.append(e)
         return list_of_expense_category
 
     def create_table(self) -> bool:
@@ -125,6 +140,14 @@ class ExpenseCategoryControl():
             if len(list_of_records_to_insert) > 0:
                 self.db_impl.insert_records(list_of_records_to_insert)
         return True
+
+    def get_all_filtered_by_user_identifier(self, user_identifier: str) -> list[ExpenseCategory]:
+        list_of_expense_category = self.db_impl.get_all_filtered_by_user_identifier(user_identifier)
+        return list_of_expense_category
+
+    def get_all(self) -> list[ExpenseCategory]:
+        list_of_expense_category = self.db_impl.get_all()
+        return list_of_expense_category
 
     def delete(self) -> bool:
         return self.db_impl.drop_table()

@@ -17,6 +17,7 @@ import tt.kiwoom_text_importer
 from tt.expense_transaction import ExpenseTransactionControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
+from tt.expense_category import ExepenseCategoryTextPrinterImpl
 from tt.simple_portfolio import SimplePortfolio
 from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
@@ -234,6 +235,27 @@ def simple_transaction(symbol):
         simple_transaction_records = db_impl.get_all_records()
         printer_impl = SimpleTransactionTextPrinterImpl()
         printer_impl.print_all(simple_transaction_records)
+
+#<program> get expense-category --user-identifier <USER IDENTIFIER>
+@get.command()
+@click.option('--user-identifier', help='User identifier')
+def exepense_category(user_identifier):
+    """
+    List expense categories.
+    """
+
+    global global_db_connection
+
+    # Get records from the database
+    control = ExpenseCategoryControl(global_db_connection)
+    if user_identifier:
+        list_of_expense_category = control.get_all_filtered_by_user_identifier(user_identifier)
+        printer_impl = ExepenseCategoryTextPrinterImpl()
+        printer_impl.print_all(list_of_expense_category)
+    else:
+        list_of_expense_category = control.get_all()
+        printer_impl = ExepenseCategoryTextPrinterImpl()
+        printer_impl.print_all(list_of_expense_category)
 
 
 def build_global_config(global_config_file_path: str) -> dict:
