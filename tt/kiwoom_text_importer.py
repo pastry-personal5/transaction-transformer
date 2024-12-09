@@ -70,8 +70,12 @@ def append_transactions_of_current_date(list_of_simple_transactions: list, trans
         if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY:
             list_of_simple_transactions.append(t)
     for t in transactions_of_current_date:
+        if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
+            list_of_simple_transactions.append(t)
+    for t in transactions_of_current_date:
         if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL:
             list_of_simple_transactions.append(t)
+
 
 
 # This function merges two lists of |SimpleTransactions| objects. It's based on date-by-date iteration.
@@ -166,6 +170,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION = '액면분할병합출고'
     # STRING_FOR_TYPE_STOCK_INSERTION = '대체입고'
     # STRING_FOR_TYPE_STOCK_DELETION = '대체출고'
+    STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = '이벤트입고'
     reader = csv.reader(input_stream, delimiter=',')
     # FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
     num_row_read = 0
@@ -212,6 +217,15 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
         transaction.account = account
         transaction.open_date = open_date
 
+        transaction.symbol = input_row[1]
+        transaction.amount = float(input_row[7].replace(',', ''))
+        transaction.open_price = float(input_row[8].replace(',', ''))
+
+        pure_commission = input_row[16]
+        tax = input_row[17]
+        total_commission = float(pure_commission) + float(tax)
+        transaction.commission = float('%.2f' % total_commission)
+
         input_row[4] = input_row[4].strip()
 
         if input_row[4] == STRING_FOR_TYPE_SELL:
@@ -222,20 +236,13 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
             transaction.transaction_type = SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
         elif input_row[4] == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION:
             transaction.transaction_type = SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
+        elif input_row[4] == STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
+            transaction.transaction_type = SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
         else:
             # Continue with the for loop, It means the other transaction except types above.
             # i.e. Dividend
             # i.e. A header line
             continue
-
-        transaction.symbol = input_row[1]
-        transaction.amount = float(input_row[7].replace(',', ''))
-        transaction.open_price = float(input_row[8].replace(',', ''))
-
-        pure_commission = input_row[16]
-        tax = input_row[17]
-        total_commission = float(pure_commission) + float(tax)
-        transaction.commission = float('%.2f' % total_commission)
 
         transactions_of_current_date.append(transaction)
 
