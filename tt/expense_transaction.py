@@ -31,27 +31,29 @@ class ExpenseTransaction():
     def __str__(self):
         return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account}) user_identifier({self.user_identifier})'
 
+
     def __eq__(self, other):
+        '''
+        `__eq__` tests equality.
+        # @Warning Please note that `__eq__` function is customized one. Several are ignored, intentionally. Ignored fields are [category0, category1, memo0, memo1].
+        '''
         if isinstance(other, ExpenseTransaction):
             return self.amount == other.amount \
-                and self.category0 == other.category0 \
-                and self.category1 == other.category1 \
                 and self.currency == other.currency \
-                and self.memo0 == other.memo0 \
-                and self.memo1 == other.memo1 \
                 and self.source_account == other.source_account \
                 and self.target_account == other.target_account \
                 and self.transaction_datetime == other.transaction_datetime \
                 and self.user_identifier == other.user_identifier
         return False
 
+
     def __hash__(self):
+        '''
+        `__hash__` returns a unique hash of an object.
+        @Warning Please note that `__eq__` function is customized one. Several fields are ignored, intentionally. Ignored fields are [category0, category1, memo0, memo1].
+        '''
         return hash((self.amount,
-            self.category0,
-            self.category1,
             self.currency,
-            self.memo0,
-            self.memo1,
             self.source_account,
             self.target_account,
             self.transaction_datetime,
