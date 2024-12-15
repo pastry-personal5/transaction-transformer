@@ -6,6 +6,7 @@ import mariadb
 from pandas import DataFrame
 import pandas
 import sqlalchemy
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import yaml
@@ -89,6 +90,10 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
     def __init__(self, db_connection: DBConnection) -> None:
         super().__init__(db_connection)
 
+    def _get_session(self):
+        Session = sessionmaker(bind=self.db_connection.engine)
+        return Session()
+
     def create_table(self) -> bool:
         # Use the inspector
         inspector = sqlalchemy.inspect(self.db_connection.engine)
@@ -99,21 +104,25 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
         return True
 
     def insert_records(self, list_of_transaction: list[BankSaladExpenseTransaction]) -> bool:
-        Session = sessionmaker(bind=self.db_connection.engine)
-        session = Session()
-        session.add_all(list_of_transaction)
-        session.commit()
-        return True
+        session = self._get_session()
+        try:
+            session.add_all(list_of_transaction)
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error during record insertion: {e}")
+            return False
+        finally:
+            session.close()
 
     def get_all(self) -> list[BankSaladExpenseTransaction]:
-        Session = sessionmaker(bind=self.db_connection.engine)
-        session = Session()
         try:
-            result = session.query(BankSaladExpenseTransaction).all()
-            return result
-        except Exception as e:
-            logger.error(e)
-            return None
+            with self._get_session() as session:
+                return session.query(BankSaladExpenseTransaction).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while fetching records: {e}")
+            return []
 
 
 class BankSaladExpenseTransactionControl():
