@@ -12,9 +12,10 @@ import click
 from loguru import logger
 
 import tt.investing_dot_com_text_exporter
+import tt.log_control
 import tt.kiwoom_text_importer
 
-from tt.expense_transaction import ExpenseTransactionControl
+from tt.expense_transaction import BankSaladExpenseTransactionControl, ExpenseTransactionControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
 from tt.expense_category import ExpenseCategoryTextPrinterImpl
@@ -115,18 +116,35 @@ def kiwoom_transaction(kiwoom_config):
         do_investing_dot_com_portfolio_export(portfolio)
 
 
-# <program> create expense-transaction
+# <program> create bank-salad-expense-transaction
 @create.command()
 @click.option('-f', '--file', required=True, help='A file exported from Bank Salad which contains expense transactions.')
 @click.option('-u', '--user-identifier', required=True, help='A user identifier.')
-def expense_transaction(file: str, user_identifier: str):
+def bank_salad_expense_transaction(file: str, user_identifier: str):
     """
     Import a file generated from Bank Salad service which contains expense transactions.
     """
     global global_db_connection
 
-    control = ExpenseTransactionControl(global_db_connection)
+    control = BankSaladExpenseTransactionControl(global_db_connection)
     result = control.import_and_append_from_file(file, user_identifier)
+    if result:
+        logger.info('Succeeded.')
+    else:
+        logger.info('Failed.')
+
+
+# <program> create expense-transaction
+@create.command()
+@click.option('-u', '--user-identifier', required=True, help='A user identifier.')
+def expense_transaction(file: str, user_identifier: str):
+    """
+    Create general expense transaction data from "Bank Salad expense transaction data in the database."
+    """
+    global global_db_connection
+
+    control = ExpenseTransactionControl(global_db_connection)
+    result = False # control.import_and_append_from_file(file, user_identifier)
     if result:
         logger.info('Succeeded.')
     else:
