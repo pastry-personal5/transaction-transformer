@@ -227,7 +227,6 @@ class ExpenseTransaction():
     def __str__(self):
         return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account}) user_identifier({self.user_identifier})'
 
-
     def __eq__(self, other):
         '''
         `__eq__` tests equality.
@@ -242,18 +241,18 @@ class ExpenseTransaction():
                 and self.user_identifier == other.user_identifier
         return False
 
-
     def __hash__(self):
         '''
         `__hash__` returns a unique hash of an object.
         @Warning Please note that `__eq__` function is customized one. Several fields are ignored, intentionally. Ignored fields are [category0, category1, memo0, memo1].
         '''
         return hash((self.amount,
-            self.currency,
-            self.source_account,
-            self.target_account,
-            self.transaction_datetime,
-            self.user_identifier))
+                     self.currency,
+                     self.source_account,
+                     self.target_account,
+                     self.transaction_datetime,
+                     self.user_identifier))
+
 
 class ExpenseTransactionDBImpl(DBImplBase):
 
@@ -376,6 +375,7 @@ class ExpenseTransactionDBImpl(DBImplBase):
             self.handle_general_sql_execution_error(e, sql_string)
             return None
         return list_of_transaction
+
 
 class ExpenseTransactionControl():
 
