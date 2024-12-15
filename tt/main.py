@@ -137,14 +137,14 @@ def bank_salad_expense_transaction(file: str, user_identifier: str):
 # <program> create expense-transaction
 @create.command()
 @click.option('-u', '--user-identifier', required=True, help='A user identifier.')
-def expense_transaction(file: str, user_identifier: str):
+def expense_transaction(user_identifier: str):
     """
     Create general expense transaction data from "Bank Salad expense transaction data in the database."
     """
     global global_db_connection
 
     control = ExpenseTransactionControl(global_db_connection)
-    result = False # control.import_and_append_from_file(file, user_identifier)
+    result = control.import_and_append_from_database(user_identifier)
     if result:
         logger.info('Succeeded.')
     else:

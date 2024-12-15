@@ -399,6 +399,9 @@ class ExpenseTransactionControl():
         self.db_impl = ExpenseTransactionDBImpl(db_connection)
         self.conversion_rule = self._load_conversion_rule()
 
+    def import_and_append_from_database(self, user_identifier: str) -> bool:
+        return False
+
     def import_and_append_from_file(self, input_file_path: str, user_identifier: str) -> bool:
         list_of_bank_salad_expense_transaction = self.importer.import_from_file(input_file_path, user_identifier)
         if not list_of_bank_salad_expense_transaction:

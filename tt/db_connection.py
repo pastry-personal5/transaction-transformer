@@ -1,11 +1,13 @@
+import logging
 import sys
 from urllib.parse import quote
 
 from loguru import logger
+import mariadb
 import sqlalchemy
 from sqlalchemy.engine.url import URL
 
-import mariadb
+import tt.log_control
 
 
 class DBConnection():
@@ -41,7 +43,13 @@ class DBConnection():
         encoded_password = quote(password)
         connection_string = f'mariadb+mariadbconnector://{user}:{encoded_password}@{host}:{port}/{self.database_name}'
         self.engine = sqlalchemy.create_engine(connection_string, echo=True)
+        self._redirect_sqlalchemy_logging_to_loguru()
         self.alchemy_conn = self.engine.connect()
+
+    def _redirect_sqlalchemy_logging_to_loguru(self):
+        sa_logger = logging.getLogger('sqlalchemy.engine.Engine')
+        sa_logger.propagate = False
+        sa_logger.handlers = [tt.log_control.InterceptHandler()]
 
     def use_database(self):
         database_name = self.database_name
