@@ -29,11 +29,12 @@ class BankSaladExpenseTransaction(Base):
     category0 = sqlalchemy.Column(sqlalchemy.String(128))
     category1 = sqlalchemy.Column(sqlalchemy.String(128))
     currency = sqlalchemy.Column(sqlalchemy.String(128))
-    transaction_datetime = sqlalchemy.Column(sqlalchemy.DateTime)
+    transaction_datetime = sqlalchemy.Column(sqlalchemy.DateTime)  # KST
     type = sqlalchemy.Column(sqlalchemy.String(128))
     memo0 = sqlalchemy.Column(sqlalchemy.String(128))
     memo1 = sqlalchemy.Column(sqlalchemy.String(128))
     user_identifier = sqlalchemy.Column(sqlalchemy.String(128))
+    imported_at = sqlalchemy.Column(sqlalchemy.DateTime)  # UTC
 
     CORE_FIELD_LENGTH = 11  # The length of items - account, amount, etc.
 
@@ -48,10 +49,12 @@ class BankSaladExpenseTransaction(Base):
         self.memo0 = None
         self.memo1 = None
         self.user_identifier = None
+        self.imported_at = None  # UTC
 
     def __eq__(self, other):
         '''
         `__eq__` tests equality.
+        @Warning Several fields are ignored, intentionally.
         '''
         if isinstance(other, BankSaladExpenseTransaction):
             return self.account == other.account \
@@ -69,6 +72,7 @@ class BankSaladExpenseTransaction(Base):
     def __hash__(self):
         '''
         `__hash__` returns a unique hash of an object.
+        @Warning Several fields are ignored, intentionally.
         '''
         return hash((self.account,
                      self.amount,
@@ -82,7 +86,7 @@ class BankSaladExpenseTransaction(Base):
                      self.user_identifier))
 
     def __str__(self):
-        return f'transaction_datetime({self.transaction_datetime}) type({self.type}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) amount({self.amount}) currency({self.currency}) account({self.account}) memo1({self.memo1}) user_identifier({self.user_identifier}))'
+        return f'transaction_datetime({self.transaction_datetime}) type({self.type}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) amount({self.amount}) currency({self.currency}) account({self.account}) memo1({self.memo1}) user_identifier({self.user_identifier}) imported_at({self.imported_at})'
 
 
 class BankSaladExpenseTransactionDBImpl(DBImplBase):
@@ -191,6 +195,7 @@ class BankSaladExpenseTransactionImporter():
         return self._bulid_expense_transaction(df, user_identifier)
 
     def _bulid_expense_transaction(self, df: DataFrame, user_identifier: str) -> list[BankSaladExpenseTransaction]:
+        current_datetime = datetime.datetime.now(datetime.timezone.utc)
         list_of_expense_transaction = []
         for row in df.itertuples(index=True, name=None):
             t = BankSaladExpenseTransaction()
@@ -211,6 +216,7 @@ class BankSaladExpenseTransactionImporter():
             else:
                 t.memo1 = row[10]
             t.user_identifier = user_identifier
+            t.imported_at = current_datetime
             list_of_expense_transaction.append(t)
 
         logger.info(f'The length of list_of_expense_transaction is ({len(list_of_expense_transaction)}).')
