@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import datetime
-import pprint
 
 from loguru import logger
 import mariadb
@@ -107,7 +106,6 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
         return True
 
     def get_all(self) -> list[BankSaladExpenseTransaction]:
-        logger.info('get_all')
         Session = sessionmaker(bind=self.db_connection.engine)
         session = Session()
         try:
