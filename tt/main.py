@@ -15,7 +15,8 @@ import tt.investing_dot_com_text_exporter
 import tt.log_control
 import tt.kiwoom_text_importer
 
-from tt.expense_transaction import BankSaladExpenseTransactionControl, ExpenseTransactionControl
+from tt.bank_salad_expense_transaction import BankSaladExpenseTransactionControl
+from tt.expense_transaction import ExpenseTransactionControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
 from tt.expense_category import ExpenseCategoryTextPrinterImpl
