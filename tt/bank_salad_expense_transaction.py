@@ -13,6 +13,7 @@ from tt.db_impl_base import DBImplBase
 
 Base = declarative_base()  # An sqlalchemy's base class.
 
+
 class BankSaladExpenseTransaction(Base):
 
     __tablename__ = 'bank_salad_expense_transactions'
@@ -99,6 +100,15 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
         BankSaladExpenseTransaction.__table__.create(self.db_connection.engine)
         return True
 
+    def drop_table(self) -> bool:
+        # Use the inspector
+        inspector = sqlalchemy.inspect(self.db_connection.engine)
+        table_name = BankSaladExpenseTransaction.__tablename__
+        if table_name not in inspector.get_table_names():
+            return False
+        BankSaladExpenseTransaction.__table__.drop(self.db_connection.engine)
+        return True
+
     def insert_records(self, list_of_transaction: list[BankSaladExpenseTransaction]) -> bool:
         session = self._get_session()
         try:
@@ -112,55 +122,13 @@ class BankSaladExpenseTransactionDBImpl(DBImplBase):
         finally:
             session.close()
 
-    def get_all(self) -> list[BankSaladExpenseTransaction]:
+    def get_all_filtered_by_user_identifier(self, user_identifier: str) -> list[BankSaladExpenseTransaction]:
         try:
             with self._get_session() as session:
-                return session.query(BankSaladExpenseTransaction).all()
+                return session.query(BankSaladExpenseTransaction).filter(BankSaladExpenseTransaction.user_identifier == user_identifier).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching records: {e}")
             return []
-
-
-class BankSaladExpenseTransactionControl():
-
-    def __init__(self, db_connection: DBConnection):
-        self.db_impl = BankSaladExpenseTransactionDBImpl(db_connection)
-        self.importer = BankSaladExpenseTransactionImporter()
-
-    def _import_from_file(self, input_file_path: str, user_identifier: str) -> list[BankSaladExpenseTransaction]:
-        return self.importer.import_from_file(input_file_path, user_identifier)
-
-    def import_and_append_from_file(self, input_file_path: str, user_identifier: str) -> bool:
-        list_of_bank_salad_expense_transaction = self._import_from_file(input_file_path, user_identifier)
-        if not list_of_bank_salad_expense_transaction:
-            return False
-        # Create a table if needed. Insert records.
-        if not self.db_impl.create_table():
-            return False
-        list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_bank_salad_expense_transaction)
-        if not self.db_impl.insert_records(list_of_expense_transaction_to_be_appended):
-            return False
-        return True
-
-    def _get_list_of_expense_transaction_to_be_appended(self, source_list: list[BankSaladExpenseTransaction]) -> list[BankSaladExpenseTransaction]:
-        '''
-        Here,
-        `target_list` is a list which was read from a DB;
-        `source_list` is a list which was read from a file.
-        '''
-        target_list = self.db_impl.get_all()
-        len_target = len(target_list)
-        len_source = len(source_list)
-        logger.info(f'The length of target_list is ({len_target})')
-        logger.info(f'The length of source_list is ({len_source})')
-        set_target = set(target_list)
-        set_source = set(source_list)
-        # Find element in set_source that are not in set_target
-        difference_set = set_source - set_target
-        list_to_return = list(difference_set)
-        len_of_list_to_return = len(list_to_return)
-        logger.info(f'The length of list_to_return is ({len_of_list_to_return})')
-        return list_to_return
 
 
 class BankSaladExpenseTransactionImporter():
@@ -213,3 +181,48 @@ class BankSaladExpenseTransactionImporter():
 
         logger.info(f'The length of list_of_expense_transaction is ({len(list_of_expense_transaction)}).')
         return list_of_expense_transaction
+
+
+class BankSaladExpenseTransactionControl():
+
+    def __init__(self, db_connection: DBConnection):
+        self.db_impl = BankSaladExpenseTransactionDBImpl(db_connection)
+        self.importer = BankSaladExpenseTransactionImporter()
+
+    def _import_from_file(self, input_file_path: str, user_identifier: str) -> list[BankSaladExpenseTransaction]:
+        return self.importer.import_from_file(input_file_path, user_identifier)
+
+    def _get_list_of_expense_transaction_to_be_appended(self, source_list: list[BankSaladExpenseTransaction], user_identifier: str) -> list[BankSaladExpenseTransaction]:
+        '''
+        Here,
+        `target_list` is a list which was read from a DB;
+        `source_list` is a list which was read from a file.
+        '''
+        target_list = self.db_impl.get_all_filtered_by_user_identifier(user_identifier)
+        len_target = len(target_list)
+        len_source = len(source_list)
+        logger.info(f'The length of target_list is ({len_target})')
+        logger.info(f'The length of source_list is ({len_source})')
+        set_target = set(target_list)
+        set_source = set(source_list)
+        # Find element in set_source that are not in set_target
+        difference_set = set_source - set_target
+        list_to_return = list(difference_set)
+        len_of_list_to_return = len(list_to_return)
+        logger.info(f'The length of list_to_return is ({len_of_list_to_return})')
+        return list_to_return
+
+    def import_and_append_from_file(self, input_file_path: str, user_identifier: str) -> bool:
+        list_of_bank_salad_expense_transaction = self._import_from_file(input_file_path, user_identifier)
+        if not list_of_bank_salad_expense_transaction:
+            return False
+        # Create a table if needed. Insert records.
+        if not self.db_impl.create_table():
+            return False
+        list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_bank_salad_expense_transaction, user_identifier)
+        if not self.db_impl.insert_records(list_of_expense_transaction_to_be_appended):
+            return False
+        return True
+
+    def delete(self) -> bool:
+        return self.db_impl.drop_table()

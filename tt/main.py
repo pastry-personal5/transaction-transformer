@@ -177,6 +177,22 @@ def delete():
     pass
 
 
+# <program> delete bank-salad-expense-transaction
+@delete.command()
+def bank_salad_expense_transaction():
+    """
+    Delete data or drop a table w.r.t. bank salad expense transactions.
+    """
+    global global_db_connection
+
+    control = BankSaladExpenseTransactionControl(global_db_connection)
+    result = control.delete()
+    if result:
+        logger.info('Succeeded.')
+    else:
+        logger.info('Failed.')
+
+
 # <program> delete expense-category
 @delete.command()
 def expense_category():
@@ -207,6 +223,7 @@ def expense_transaction():
         logger.info('Succeeded.')
     else:
         logger.info('Failed.')
+
 
 @cli.group()
 def export():
@@ -255,6 +272,7 @@ def simple_transaction(symbol):
         simple_transaction_records = db_impl.get_all_records()
         printer_impl = SimpleTransactionTextPrinterImpl()
         printer_impl.print_all(simple_transaction_records)
+
 
 #<program> get expense-category --user-identifier <USER IDENTIFIER>
 @get.command()

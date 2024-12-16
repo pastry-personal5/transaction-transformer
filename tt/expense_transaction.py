@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 import yaml
 
-from tt.bank_salad_expense_transaction import BankSaladExpenseTransaction
+from tt.bank_salad_expense_transaction import BankSaladExpenseTransaction, BankSaladExpenseTransactionDBImpl
 from tt.db_connection import DBConnection
 from tt.db_impl_base import DBImplBase
 
@@ -109,10 +109,10 @@ class ExpenseTransactionDBImpl(DBImplBase):
         finally:
             session.close()
 
-    def get_all(self) -> list[ExpenseTransaction]:
+    def get_all_filtered_by_user_identifier(self, user_identifier: str) -> list[ExpenseTransaction]:
         try:
             with self._get_session() as session:
-                return session.query(ExpenseTransaction).all()
+                return session.query(ExpenseTransaction).filter(ExpenseTransaction.user_identifier == user_identifier).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching records: {e}")
             return []
@@ -121,33 +121,15 @@ class ExpenseTransactionDBImpl(DBImplBase):
 class ExpenseTransactionControl():
 
     def __init__(self, db_connection: DBConnection):
-        self.importer = BankSaladExpenseTransactionImporter()
         self.db_impl = ExpenseTransactionDBImpl(db_connection)
         self.conversion_rule = self._load_conversion_rule()
+        self.bank_salad_expense_transaction_db_impl = BankSaladExpenseTransactionDBImpl(db_connection)
 
-    def import_and_append_from_database(self, user_identifier: str) -> bool:
-        return False
+    def _get_all_records_of_bank_salad_expense_transaction(self, user_identifier: str) -> list[BankSaladExpenseTransaction]:
+        return self.bank_salad_expense_transaction_db_impl.get_all_filtered_by_user_identifier(user_identifier)
 
-    def import_and_append_from_file(self, input_file_path: str, user_identifier: str) -> bool:
-        list_of_bank_salad_expense_transaction = self.importer.import_from_file(input_file_path, user_identifier)
-        if not list_of_bank_salad_expense_transaction:
-            return False
-
-        # Convert
-        list_of_expense_transaction = self._convert(list_of_bank_salad_expense_transaction, self.conversion_rule)
-        if not list_of_expense_transaction:
-            return False
-
-        # Create a table if needed. Insert records.
-        if not self.db_impl.create_table():
-            return False
-        list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_expense_transaction)
-        if not self.db_impl.insert_records(list_of_expense_transaction_to_be_appended):
-            return False
-        return True
-
-    def _get_list_of_expense_transaction_to_be_appended(self, source_list: list[ExpenseTransaction]) -> list[ExpenseTransaction]:
-        target_list = self.db_impl.get_all()
+    def _get_list_of_expense_transaction_to_be_appended(self, source_list: list[ExpenseTransaction], user_identifier: str) -> list[ExpenseTransaction]:
+        target_list = self.db_impl.get_all_filtered_by_user_identifier(user_identifier)
         len_target = len(target_list)
         len_source = len(source_list)
         logger.info(f'The length of target_list is ({len_target})')
@@ -160,9 +142,6 @@ class ExpenseTransactionControl():
         len_of_list_to_return = len(list_to_return)
         logger.info(f'The length of list_to_return is ({len_of_list_to_return})')
         return list_to_return
-
-    def delete(self) -> bool:
-        return self.db_impl.drop_table()
 
     def _load_conversion_rule(self):
         conversion_rule_file_path = './config/conversion_rule.yaml'
@@ -177,6 +156,7 @@ class ExpenseTransactionControl():
             return None
 
     def _convert(self, source: list[BankSaladExpenseTransaction], conversion_rule: dict) -> list[ExpenseTransaction]:
+        current_datetime = datetime.datetime.now(datetime.timezone.utc)
         list_of_expense_transaction = []
         for item in source:
             t = ExpenseTransaction()
@@ -190,6 +170,7 @@ class ExpenseTransactionControl():
             t.memo0 = item.memo0
             t.memo1 = item.memo1
             t.user_identifier = item.user_identifier
+            t.converted_at = current_datetime
 
             list_of_expense_transaction.append(t)
 
@@ -210,3 +191,20 @@ class ExpenseTransactionControl():
         if flag_found:
             return target_category0
         return const_default_category
+
+    def delete(self) -> bool:
+        return self.db_impl.drop_table()
+
+    def import_and_append_from_database(self, user_identifier: str) -> bool:
+        self.db_impl.create_table()
+        # @TODO(dennis.oh) Improve performance.
+        list_of_bank_salad_expense_transaction = self._get_all_records_of_bank_salad_expense_transaction(user_identifier)
+        if not list_of_bank_salad_expense_transaction:
+            return False
+        # Convert
+        list_of_expense_transaction = self._convert(list_of_bank_salad_expense_transaction, self.conversion_rule)
+        if not list_of_expense_transaction:
+            return False
+        list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_expense_transaction, user_identifier)
+        self.db_impl.insert_records(list_of_expense_transaction_to_be_appended)
+        return False

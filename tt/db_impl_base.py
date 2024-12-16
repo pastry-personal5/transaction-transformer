@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from tt.db_connection import DBConnection
 
+
 class DBImplBase():
 
     def __init__(self, db_connection: DBConnection):
