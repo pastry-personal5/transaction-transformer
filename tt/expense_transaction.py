@@ -223,7 +223,24 @@ class BankSaladExpenseTransactionImporter():
         return list_of_expense_transaction
 
 
-class ExpenseTransaction():
+class ExpenseTransaction(Base):
+
+    __tablename__ = 'expense_transactions'
+    __table_args__ = {
+        'mysql_charset': 'utf8mb4',
+    }
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
+    amount = sqlalchemy.Column(sqlalchemy.Integer)
+    category0 = sqlalchemy.Column(sqlalchemy.String(128))
+    category1 = sqlalchemy.Column(sqlalchemy.String(128))
+    converted_at = sqlalchemy.Column(sqlalchemy.DateTime)  # UTC
+    currency = sqlalchemy.Column(sqlalchemy.String(128))
+    memo0 = sqlalchemy.Column(sqlalchemy.String(128))
+    memo1 = sqlalchemy.Column(sqlalchemy.String(128))
+    source_account = sqlalchemy.Column(sqlalchemy.String(128))
+    target_account = sqlalchemy.Column(sqlalchemy.String(128))
+    transaction_datetime = sqlalchemy.Column(sqlalchemy.DateTime)  # KST
+    user_identifier = sqlalchemy.Column(sqlalchemy.String(128))
 
     CORE_FIELD_LENGTH = 10  # The length of items - account, amount, etc.
 
@@ -231,16 +248,17 @@ class ExpenseTransaction():
         self.amount = 0
         self.category0 = None
         self.category1 = None
+        self.converted_at = None  # UTC.
         self.currency = None
         self.memo0 = None
         self.memo1 = None
         self.source_account = None
         self.target_account = None
-        self.transaction_datetime = None  # datetime.datetime
+        self.transaction_datetime = None  # datetime.datetime. KST.
         self.user_identifier = None
 
     def __str__(self):
-        return f'datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account}) user_identifier({self.user_identifier})'
+        return f'transaction_datetime({self.transaction_datetime}) category0({self.category0}) category1({self.category1}) memo0({self.memo0}) memo1({self.memo1}) amount({self.amount}) currency({self.currency}) source_account({self.source_account}) target_account({self.target_account}) user_identifier({self.user_identifier})'
 
     def __eq__(self, other):
         '''
@@ -273,123 +291,39 @@ class ExpenseTransactionDBImpl(DBImplBase):
 
     def __init__(self, db_connection):
         super().__init__(db_connection)
-        self.table_name = 'expense_transactions'
-        self.core_table_definition = [
-            ('transaction_datetime', 'DATETIME', ''),
-            ('category0', 'VARCHAR(128)', ''),
-            ('category1', 'VARCHAR(128)', ''),
-            ('memo0', 'VARCHAR(256)', ''),
-            ('amount', 'int', ''),
-            ('currency', 'VARCHAR(128)', ''),
-            ('source_account', 'VARCHAR(128)', ''),
-            ('target_account', 'VARCHAR(128)', ''),
-            ('memo1', 'VARCHAR(256)', ''),
-            ('user_identifier', 'VARCHAR(128)', ''),
-        ]
-
-        assert len(self.core_table_definition) == ExpenseTransaction.CORE_FIELD_LENGTH
-
-    def _get_sql_string_for_table_creation(self):
-        sql_string = ''
-        sql_string += 'CREATE TABLE IF NOT EXISTS'
-        sql_string += ' '
-        sql_string += self.table_name
-        sql_string += ' '
-        sql_string += '(\n'
-        sql_string += 'id bigint auto_increment, \n'
-        for t in self.core_table_definition:
-            sql_string += ' '.join(t) + ',\n'
-        sql_string += 'primary key(id)\n'
-        sql_string += ')\n'
-        sql_string += f'CHARACTER SET \'{self.const_default_table_charset}\';'
-        return sql_string
-
-    def _get_sql_string_for_table_deletion(self):
-        sql_string = 'DROP TABLE ' + self.table_name + ';'
-        return sql_string
 
     def create_table(self) -> bool:
-        sql_string = self._get_sql_string_for_table_creation()
-        try:
-            cur = self.db_connection.cur()
-            cur.execute(sql_string)
-        except mariadb.Error as e:
-            self.handle_general_sql_execution_error(e, sql_string)
+        if self._is_table_in_database(ExpenseTransaction.__tablename__):
             return False
+        ExpenseTransaction.__table__.create(self.db_connection.engine)
         return True
 
     def drop_table(self) -> bool:
-        sql_string = self._get_sql_string_for_table_deletion()
-        try:
-            cur = self.db_connection.cur()
-            cur.execute(sql_string)
-        except mariadb.Error as e:
-            self.handle_general_sql_execution_error(e, sql_string)
+        if not self._is_table_in_database(ExpenseTransaction.__tablename__):
             return False
+        ExpenseTransaction.__table__.drop(self.db_connection.engine)
         return True
-
-    def _get_sql_string_for_record_insertion(self, t):
-        values = {}
-        values['transaction_datetime'] = self.convert_datetime_to_sql_string(t.transaction_datetime)
-        values['category0'] = self.escape_sql_string(t.category0)
-        values['category1'] = self.escape_sql_string(t.category1)
-        values['memo0'] = self.escape_sql_string(t.memo0)
-        values['amount'] = t.amount
-        values['currency'] = self.escape_sql_string(t.currency)
-        values['source_account'] = self.escape_sql_string(t.source_account)
-        values['target_account'] = self.escape_sql_string(t.target_account)
-        values['memo1'] = self.escape_sql_string(t.memo1)
-        values['user_identifier'] = self.escape_sql_string(t.user_identifier)
-        sql_string = f'INSERT INTO {self.table_name}'
-        sql_string += ' (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier) VALUES ('
-        sql_string += f' {values['transaction_datetime']},'
-        sql_string += f' {values['category0']},'
-        sql_string += f' {values['category1']},'
-        sql_string += f' {values['memo0']},'
-        sql_string += f' {values['amount']},'
-        sql_string += f' {values['currency']},'
-        sql_string += f' {values['source_account']},'
-        sql_string += f' {values['target_account']},'
-        sql_string += f' {values['memo1']},'
-        sql_string += f' {values['user_identifier']}'
-        sql_string += ');'
-        return sql_string
 
     def insert_records(self, list_of_transaction: list[ExpenseTransaction]) -> bool:
-        cur = self.db_connection.cur()
-        for t in list_of_transaction:
-            sql_string = self._get_sql_string_for_record_insertion(t)
-            try:
-                cur.execute(sql_string)
-            except mariadb.Error as e:
-                self.handle_general_sql_execution_error(e, sql_string)
-                return False
-        return True
+        session = self._get_session()
+        try:
+            session.add_all(list_of_transaction)
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error during record insertion: {e}")
+            return False
+        finally:
+            session.close()
 
     def get_all(self) -> list[ExpenseTransaction]:
-        cur = self.db_connection.cur()
-        sql_string = 'SELECT transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier FROM'
-        sql_string += ' ' + self.table_name + ';'
-        list_of_transaction = []
         try:
-            cur.execute(sql_string)
-            for (transaction_datetime, category0, category1, memo0, amount, currency, source_account, target_account, memo1, user_identifier) in cur:
-                t = ExpenseTransaction()
-                t.transaction_datetime = transaction_datetime
-                t.category0 = category0
-                t.category1 = category1
-                t.memo0 = memo0
-                t.amount = amount
-                t.currency = currency
-                t.source_account = source_account
-                t.target_account = target_account
-                t.memo1 = memo1
-                t.user_identifier = user_identifier
-                list_of_transaction.append(t)
-        except mariadb.Error as e:
-            self.handle_general_sql_execution_error(e, sql_string)
-            return None
-        return list_of_transaction
+            with self._get_session() as session:
+                return session.query(ExpenseTransaction).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while fetching records: {e}")
+            return []
 
 
 class ExpenseTransactionControl():

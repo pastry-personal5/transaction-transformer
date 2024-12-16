@@ -2,7 +2,8 @@ import datetime
 import sys
 
 from loguru import logger
-import mariadb
+import sqlalchemy
+from sqlalchemy.orm import sessionmaker
 
 from tt.db_connection import DBConnection
 
@@ -16,6 +17,17 @@ class DBImplBase():
         logger.error(f'Error executing the SQL. Error was: {exception_object}')
         logger.error(f'Error executing the SQL. SQL was: {sql_string}')
         sys.exit(1)
+
+    def _get_session(self):
+        Session = sessionmaker(bind=self.db_connection.engine)
+        return Session()
+
+    def _is_table_in_database(self, table_name: str) -> bool:
+        # Use the inspector
+        inspector = sqlalchemy.inspect(self.db_connection.engine)
+        if table_name in inspector.get_table_names():
+            return True
+        return False
 
     def escape_sql_string(self, value: str) -> str:
         """
