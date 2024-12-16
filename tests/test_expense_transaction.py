@@ -195,5 +195,6 @@ class TestExpenseTransactionControl(unittest.TestCase):
         self.assertEqual(result[0].amount, 100)
         self.assertEqual(result[0].category0, '카테고리 없음')
 
+
 if __name__ == '__main__':
     unittest.main()

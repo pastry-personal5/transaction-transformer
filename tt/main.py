@@ -274,7 +274,7 @@ def simple_transaction(symbol):
         printer_impl.print_all(simple_transaction_records)
 
 
-#<program> get expense-category --user-identifier <USER IDENTIFIER>
+# <program> get expense-category --user-identifier <USER IDENTIFIER>
 @get.command()
 @click.option('--user-identifier', help='User identifier')
 def expense_category(user_identifier):
