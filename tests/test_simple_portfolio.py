@@ -5,6 +5,7 @@ import tt
 from tt.simple_portfolio import SimplePortfolio
 from tt.simple_transaction import SimpleTransaction
 
+
 class TestSimplePortfolio(unittest.TestCase):
     def setUp(self):
         self.portfolio = SimplePortfolio()
