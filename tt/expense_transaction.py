@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import datetime
+import pprint
 
 from loguru import logger
 import sqlalchemy
@@ -158,39 +159,43 @@ class ExpenseTransactionControl():
     def _convert(self, source: list[BankSaladExpenseTransaction], conversion_rule: dict) -> list[ExpenseTransaction]:
         current_datetime = datetime.datetime.now(datetime.timezone.utc)
         list_of_expense_transaction = []
-        for item in source:
+        for s in source:
             t = ExpenseTransaction()
-            t.transaction_datetime = item.transaction_datetime
-            t.category0 = self._get_category(conversion_rule, item.category0, item.category1, item.memo0, item.account, item.memo1)
-            t.category1 = None  # For future use.
-            t.amount = item.amount
-            t.currency = item.currency
-            t.source_account = item.account
+            t.transaction_datetime = s.transaction_datetime
+            (t.category0, t.category1, t.memo0, t.memo1) = self._get_category(conversion_rule, s)
+            t.amount = s.amount
+            t.currency = s.currency
+            t.source_account = s.account
             t.target_account = None
-            t.memo0 = item.memo0
-            t.memo1 = item.memo1
-            t.user_identifier = item.user_identifier
+            t.user_identifier = s.user_identifier
             t.converted_at = current_datetime
 
             list_of_expense_transaction.append(t)
 
         return list_of_expense_transaction
 
-    def _get_category(self, conversion_rule: dict, src_category0, src_category1, src_memo0, src_account, src_memo1) -> str:
+    def _get_category(self, conversion_rule: dict, s: BankSaladExpenseTransaction) -> tuple[str, str, str, str]:
         const_default_category = '카테고리 없음'
         flag_found = False
         for rule in conversion_rule['rules']:
-            if (not rule['source']['category0'] or rule['source']['category0'] and rule['source']['category0'] == src_category0) and \
-                (not rule['source']['category1'] or rule['source']['category1'] and rule['source']['category1'] == src_category1) and \
-                (not rule['source']['memo0'] or rule['source']['memo0'] and rule['source']['memo0'] == src_category1) and \
-                (not rule['source']['account'] or rule['source']['account'] and rule['source']['account'] == src_category1) and \
-                (not rule['source']['memo1'] or rule['source']['memo1'] and rule['source']['memo1'] == src_category1):
-                target_category0 = rule['target']['category0']
+            if (('type' not in rule['source']) or ('type' in rule['source'] and (not rule['source']['type'] or rule['source']['type'] and rule['source']['type'] == s.type))) and \
+                (not rule['source']['category0'] or rule['source']['category0'] and rule['source']['category0'] == s.category0) and \
+                (not rule['source']['category1'] or rule['source']['category1'] and rule['source']['category1'] == s.category1) and \
+                (not rule['source']['memo0'] or rule['source']['memo0'] and rule['source']['memo0'] == s.memo0) and \
+                (not rule['source']['account'] or rule['source']['account'] and rule['source']['account'] == s.account) and \
+                (not rule['source']['memo1'] or rule['source']['memo1'] and rule['source']['memo1'] == s.memo1):
                 flag_found = True
                 break
         if flag_found:
-            return target_category0
-        return const_default_category
+            target_category0 = rule['target']['category0']
+            if 'category1' not in rule['target']:
+                target_category1 = s.category1
+            else:
+                target_category1 = rule['target']['category1']
+            target_memo0 = s.memo0
+            target_memo1 = s.memo1
+            return (target_category0, target_category1, target_memo0, target_memo1)
+        return (const_default_category, None, None, None)
 
     def delete(self) -> bool:
         return self.db_impl.drop_table()
@@ -207,4 +212,4 @@ class ExpenseTransactionControl():
             return False
         list_of_expense_transaction_to_be_appended = self._get_list_of_expense_transaction_to_be_appended(list_of_expense_transaction, user_identifier)
         self.db_impl.insert_records(list_of_expense_transaction_to_be_appended)
-        return False
+        return True

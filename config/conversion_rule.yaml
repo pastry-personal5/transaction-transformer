@@ -7,6 +7,7 @@ rules:
       memo1:
     target:
       category0: 이체
+      category1: 내계좌이체
   - source:
       category0: 앱테크
       category1: 미분류
@@ -71,6 +72,7 @@ rules:
       memo1:
     target:
       category0: 주거·통신
+      category1: 휴대폰
   - source:
       category0: 주거/통신
       category1: 전기세
@@ -87,6 +89,7 @@ rules:
       memo1:
     target:
       category0: 식비
+      category1: 식재료
   - source:
       category0: 생활
       category1: 마트
@@ -95,6 +98,7 @@ rules:
       memo1:
     target:
       category0: 편의점·마트·잡화
+      category1: 마트
   - source:
       category0: 금융
       category1: 세금/과태료
@@ -111,6 +115,7 @@ rules:
       memo1:
     target:
       category0: 교통·자동차
+      category1: 정비/수리
   - source:
       category0: 저축
       category1: 미분류
@@ -143,6 +148,7 @@ rules:
       memo1:
     target:
       category0: 교통·자동차
+      category1: 통행료
   - source:
       category0: 문화/여가
       category1: 영화
@@ -151,6 +157,7 @@ rules:
       memo1:
     target:
       category0: 취미·여가
+      category1: 영화
   - source:
       category0: 생활
       category1: 생활서비스
@@ -175,6 +182,7 @@ rules:
       memo1:
     target:
       category0: 주거·통신
+      category1: 관리비
   - source:
       category0: 온라인쇼핑
       category1: 서비스구독
@@ -183,6 +191,7 @@ rules:
       memo1:
     target:
       category0: 쇼핑
+      category1: 서비스구독
   - source:
       category0: 온라인쇼핑
       category1: 앱스토어
@@ -191,6 +200,7 @@ rules:
       memo1:
     target:
       category0: 쇼핑
+      category1: 앱스토어
   - source:
       category0: 기타수입
       category1: 미분류
@@ -207,6 +217,7 @@ rules:
       memo1:
     target:
       category0: 식비
+      category1: 중식
   - source:
       category0: 용돈
       category1: 미분류
@@ -287,14 +298,6 @@ rules:
       memo1:
     target:
       category0: 생활
-  - source:
-      category0: 미분류
-      category1: 미분류
-      memo0:
-      account:
-      memo1:
-    target:
-      category0: 카테고리 없음
   - source:
       category0: 온라인쇼핑
       category1: 결제/충전
@@ -616,3 +619,30 @@ rules:
       memo1:
     target:
       category0: 쇼핑
+# Rules that are manually added.
+  - source:
+      type: 이체
+      category0: 미분류
+      category1: 미분류
+      memo0: 통장 이자
+      account:
+      memo1:
+    target:
+      category0: 수입 이자
+  - source:
+      type: 이체
+      category0: 미분류
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 이체
+  - source:
+      category0: 미분류
+      category1: 미분류
+      memo0:
+      account:
+      memo1:
+    target:
+      category0: 카테고리 없음
