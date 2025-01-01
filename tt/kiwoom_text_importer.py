@@ -77,7 +77,6 @@ def append_transactions_of_current_date(list_of_simple_transactions: list, trans
             list_of_simple_transactions.append(t)
 
 
-
 # This function merges two lists of |SimpleTransactions| objects. It's based on date-by-date iteration.
 # Note: Performance-wise, this function can be improved a lot.
 def merge_simple_transactions(first: list, second: list) -> list:

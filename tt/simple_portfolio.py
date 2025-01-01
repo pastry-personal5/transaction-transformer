@@ -92,7 +92,7 @@ class SimplePortfolio():
     def record(self, transaction: SimpleTransaction):
         # Please note that, this class is building a portfolio. As that being said, TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT is a kind of TYPE_BUY here. That's meaning of 'or' here.
         if transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY \
-            or transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
+                or transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
             self.record_buy(transaction)
         elif transaction.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL:
             self.record_sell(transaction)

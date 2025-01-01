@@ -179,11 +179,11 @@ class ExpenseTransactionControl():
         flag_found = False
         for rule in conversion_rule['rules']:
             if (('type' not in rule['source']) or ('type' in rule['source'] and (not rule['source']['type'] or rule['source']['type'] and rule['source']['type'] == s.type))) and \
-                (not rule['source']['category0'] or rule['source']['category0'] and rule['source']['category0'] == s.category0) and \
-                (not rule['source']['category1'] or rule['source']['category1'] and rule['source']['category1'] == s.category1) and \
-                (not rule['source']['memo0'] or rule['source']['memo0'] and rule['source']['memo0'] == s.memo0) and \
-                (not rule['source']['account'] or rule['source']['account'] and rule['source']['account'] == s.account) and \
-                (not rule['source']['memo1'] or rule['source']['memo1'] and rule['source']['memo1'] == s.memo1):
+                    (not rule['source']['category0'] or rule['source']['category0'] and rule['source']['category0'] == s.category0) and \
+                    (not rule['source']['category1'] or rule['source']['category1'] and rule['source']['category1'] == s.category1) and \
+                    (not rule['source']['memo0'] or rule['source']['memo0'] and rule['source']['memo0'] == s.memo0) and \
+                    (not rule['source']['account'] or rule['source']['account'] and rule['source']['account'] == s.account) and \
+                    (not rule['source']['memo1'] or rule['source']['memo1'] and rule['source']['memo1'] == s.memo1):
                 flag_found = True
                 break
         if flag_found:

@@ -30,12 +30,12 @@ class SimpleTransaction():
         return f'symbol({self.symbol}) transaction_type({transaction_type_as_string}) open_price({self.open_price}) amount({self.amount}) commission({self.commission}) open_date({self.open_date})'
 
     def get_transaction_type_string(self):
-        array_of_transaction_type = [ self.SimpleTransactionTypeEnum.TYPE_SELL,
-                                  self.SimpleTransactionTypeEnum.TYPE_BUY,
-                                  self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION,
-                                  self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION,
-                                  self.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT,
-                                  ]
+        array_of_transaction_type = [self.SimpleTransactionTypeEnum.TYPE_SELL,
+                                     self.SimpleTransactionTypeEnum.TYPE_BUY,
+                                     self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION,
+                                     self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION,
+                                     self.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT,
+                                     ]
         array_of_transaction_type_string = [
             'SELL',
             'BUY',

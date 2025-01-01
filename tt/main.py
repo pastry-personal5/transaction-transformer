@@ -4,8 +4,8 @@
 This module interprets command from a user, the do the job.
 """
 
-import argparse
 import sys
+from typing import Optional
 import yaml
 
 import click
@@ -82,7 +82,7 @@ def create():
 # <program> create kiwoom-transaction
 @create.command()
 @click.option('--kiwoom-config', required=True, help='Kiwoom configuration file path.')
-def kiwoom_transaction(kiwoom_config):
+def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
     """
     Import Kiwoom Securities transaction file and create transaction records in a database.
     """

@@ -3,6 +3,7 @@ import logging
 
 from loguru import logger
 
+
 class InterceptHandler(logging.Handler):
     '''
     It transfers any logs to loguru logger. Please look for https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging.
