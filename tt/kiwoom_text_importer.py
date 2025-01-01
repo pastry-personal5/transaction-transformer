@@ -38,6 +38,7 @@ import csv
 import datetime
 import re
 import sys
+from typing import Optional
 import yaml
 
 
@@ -79,7 +80,7 @@ def append_transactions_of_current_date(list_of_simple_transactions: list, trans
 
 # This function merges two lists of |SimpleTransactions| objects. It's based on date-by-date iteration.
 # Note: Performance-wise, this function can be improved a lot.
-def merge_simple_transactions(first: list, second: list) -> list:
+def merge_simple_transactions(first: list[SimpleTransaction], second: list[SimpleTransaction]) -> list[SimpleTransaction]:
     merged = []
     len_first = len(first)
     len_second = len(second)
@@ -89,8 +90,8 @@ def merge_simple_transactions(first: list, second: list) -> list:
     j = 0
     current_date = first[0].open_date
     transactions_of_current_date = None
-    today = datetime.date.today()
-    while current_date <= today:
+    ending_date = datetime.date.today()
+    while current_date <= ending_date:
         transactions_of_current_date = []
         while i < len_first:
             f = first[i]
@@ -112,7 +113,7 @@ def merge_simple_transactions(first: list, second: list) -> list:
     return merged
 
 
-def build_list_of_simple_transactions(config_filepath):
+def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransaction]:
     try:
         config_file = open(config_filepath, 'rb')
         config = yaml.safe_load(config_file)

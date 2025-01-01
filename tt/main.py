@@ -4,6 +4,7 @@
 This module interprets command from a user, the do the job.
 """
 
+import datetime
 import sys
 from typing import Optional
 import yaml
@@ -22,6 +23,7 @@ from tt.expense_category import ExpenseCategoryControl
 from tt.expense_category import ExpenseCategoryTextPrinterImpl
 from tt.simple_portfolio import SimplePortfolio
 from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
+from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
 from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
 
@@ -31,9 +33,13 @@ global_db_connection = None
 global_config_ir = None
 
 
-def build_portfolio(list_of_simple_transactions):
+def build_portfolio(list_of_simple_transactions: list[SimpleTransaction], portfolio_snapshot_date: Optional[datetime.date]):
     p = SimplePortfolio()
     for transaction in list_of_simple_transactions:
+        if portfolio_snapshot_date:
+            if transaction.open_date > portfolio_snapshot_date:
+                logger.info(transaction)
+                continue
         p.record(transaction)
     return p
 
@@ -82,6 +88,7 @@ def create():
 # <program> create kiwoom-transaction
 @create.command()
 @click.option('--kiwoom-config', required=True, help='Kiwoom configuration file path.')
+@click.option('--portfolio-snapshot-date', required=False, help='A date for portfolio snapshot. Optional.')
 def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
     """
     Import Kiwoom Securities transaction file and create transaction records in a database.
@@ -95,26 +102,35 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
         logger.error('Currently only reading files from Kiwoom Securities is supported.')
         sys.exit(-1)
 
-    if flag_read_input_from_kiwoom:
-        kiwoom_config_file_path = kiwoom_config
-        list_of_simple_transactions = None
-
+    portfolio_snapshot_date_obj = None
+    if portfolio_snapshot_date:
         try:
-            list_of_simple_transactions = tt.kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
-            if not list_of_simple_transactions:
-                sys.exit(-1)
-        except IOError as e:
-            logger.error(f'IOError: {e}')
-            logger.error('Input file path was: %s' % kiwoom_config_file_path)
+            expected_date_format = '%Y-%m-%d'
+            portfolio_snapshot_date_obj = datetime.datetime.strptime(portfolio_snapshot_date, expected_date_format).date()
+        except ValueError as e:
+            logger.error(f'Error while parsing a portfolio snapshot date: ({portfolio_snapshot_date}). Expected date format is ({expected_date_format}). For example, 2007-12-31.')
+            logger.error(e)
             sys.exit(-1)
 
-        global global_db_connection
-        db_impl = SimpleTransactionDBImpl(global_db_connection)
-        db_impl.export_all(list_of_simple_transactions)
+    kiwoom_config_file_path = kiwoom_config
+    list_of_simple_transactions = None
 
-        portfolio = build_portfolio(list_of_simple_transactions)
+    try:
+        list_of_simple_transactions = tt.kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
+        if not list_of_simple_transactions:
+            sys.exit(-1)
+    except IOError as e:
+        logger.error(f'IOError: {e}')
+        logger.error('Input file path was: %s' % kiwoom_config_file_path)
+        sys.exit(-1)
 
-        do_investing_dot_com_portfolio_export(portfolio)
+    global global_db_connection
+    db_impl = SimpleTransactionDBImpl(global_db_connection)
+    db_impl.export_all(list_of_simple_transactions)
+
+    portfolio = build_portfolio(list_of_simple_transactions, portfolio_snapshot_date_obj)
+
+    do_investing_dot_com_portfolio_export(portfolio)
 
 
 # <program> create bank-salad-expense-transaction
