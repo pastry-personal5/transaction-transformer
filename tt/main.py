@@ -12,60 +12,34 @@ import yaml
 import click
 from loguru import logger
 
-import tt.investing_dot_com_text_exporter
 import tt.log_control
 import tt.kiwoom_text_importer
 
 from tt.bank_salad_expense_transaction import BankSaladExpenseTransactionControl
 from tt.expense_transaction import ExpenseTransactionControl
+from tt.fact_data_control import FactDataControl
 from tt.db_connection import DBConnection
 from tt.expense_category import ExpenseCategoryControl
 from tt.expense_category import ExpenseCategoryTextPrinterImpl
 from tt.simple_portfolio import SimplePortfolio
-from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
+from tt.simple_portfolio_control import SimplePortfolioControl
 from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
 from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
+from tt.stock_split import StockSplitControl
 
 
-global_flag_initialized_global_objects = False
-global_db_connection = None
-global_config_ir = None
+class GlobalObjectControl:
+
+    def __init__(self):
+        self.global_flag_initialized_global_objects = False
+        self.global_db_connection = None  # `tt.db_connection.DBConnection`
+        self.global_config_ir = None
+        self.fact_data_control = None
 
 
-def build_portfolio(list_of_simple_transactions: list[SimpleTransaction], portfolio_snapshot_date: Optional[datetime.date]):
-    p = SimplePortfolio()
-    for transaction in list_of_simple_transactions:
-        if portfolio_snapshot_date:
-            if transaction.open_date > portfolio_snapshot_date:
-                logger.info(transaction)
-                continue
-        p.record(transaction)
-    return p
-
-
-def do_investing_dot_com_portfolio_export(portfolio: SimplePortfolio) -> None:
-    try:
-        output_file_path = './data/investing_dot_com_portfolio.txt'
-        f = open(output_file_path, 'w', encoding='utf-8')
-        tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
-        f.close()
-    except IOError as e:
-        logger.error(f'IOError: {e}')
-        logger.error('The file path was: %s' % output_file_path)
-
-
-def do_yahoo_finance_web_export(portfolio):
-    config_file_path = './config/yahoo.yaml'
-    yahoo_finance_web_exporter = YahooFinanceWebExporter()
-    if not yahoo_finance_web_exporter.read_config(config_file_path):
-        return False
-    if not yahoo_finance_web_exporter.verify_config():
-        return False
-    yahoo_finance_web_exporter.prepare_export()
-    yahoo_finance_web_exporter.export_simple_portfolio(portfolio)
-    yahoo_finance_web_exporter.cleanup()
-    return True
+# Global variable
+global_object_control = GlobalObjectControl()
 
 
 @click.group()
@@ -124,13 +98,13 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
         logger.error('Input file path was: %s' % kiwoom_config_file_path)
         sys.exit(-1)
 
-    global global_db_connection
-    db_impl = SimpleTransactionDBImpl(global_db_connection)
+    global global_object_control
+    db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
     db_impl.export_all(list_of_simple_transactions)
 
-    portfolio = build_portfolio(list_of_simple_transactions, portfolio_snapshot_date_obj)
-
-    do_investing_dot_com_portfolio_export(portfolio)
+    simple_portfolio_control = SimplePortfolioControl(global_object_control.fact_data_control)
+    portfolio = simple_portfolio_control.build_portfolio(list_of_simple_transactions, portfolio_snapshot_date_obj)
+    simple_portfolio_control.do_investing_dot_com_portfolio_export(portfolio)
 
 
 # <program> create bank-salad-expense-transaction
@@ -141,9 +115,9 @@ def bank_salad_expense_transaction(file: str, user_identifier: str):
     """
     Import a file generated from Bank Salad service which contains expense transactions.
     """
-    global global_db_connection
+    global global_object_control
 
-    control = BankSaladExpenseTransactionControl(global_db_connection)
+    control = BankSaladExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.import_and_append_from_file(file, user_identifier)
     if result:
         logger.info('Succeeded.')
@@ -158,9 +132,9 @@ def expense_transaction(user_identifier: str):
     """
     Create general expense transaction data from "Bank Salad expense transaction data in the database."
     """
-    global global_db_connection
+    global global_object_control
 
-    control = ExpenseTransactionControl(global_db_connection)
+    control = ExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.import_and_append_from_database(user_identifier)
     if result:
         logger.info('Succeeded.')
@@ -175,9 +149,9 @@ def expense_category(file):
     """
     Create or update records of expense category based on a given file.
     """
-    global global_db_connection
+    global global_object_control
 
-    control = ExpenseCategoryControl(global_db_connection)
+    control = ExpenseCategoryControl(global_object_control.global_db_connection)
     result = control.import_and_append_from_file(file)
     if result:
         logger.info('Succeeded.')
@@ -199,9 +173,9 @@ def bank_salad_expense_transaction():
     """
     Delete data or drop a table w.r.t. bank salad expense transactions.
     """
-    global global_db_connection
+    global global_object_control
 
-    control = BankSaladExpenseTransactionControl(global_db_connection)
+    control = BankSaladExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.delete()
     if result:
         logger.info('Succeeded.')
@@ -215,9 +189,9 @@ def expense_category():
     """
     Create or update records of expense category based on a given file.
     """
-    global global_db_connection
+    global global_object_control
 
-    control = ExpenseCategoryControl(global_db_connection)
+    control = ExpenseCategoryControl(global_object_control.global_db_connection)
     result = control.delete()
     if result:
         logger.info('Succeeded.')
@@ -231,9 +205,9 @@ def expense_transaction():
     """
     Delete data or drop a table w.r.t. expense transactions.
     """
-    global global_db_connection
+    global global_object_control
 
-    control = ExpenseTransactionControl(global_db_connection)
+    control = ExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.delete()
     if result:
         logger.info('Succeeded.')
@@ -272,10 +246,10 @@ def simple_transaction(symbol):
     """
     List simple transactions.
     """
-    global global_db_connection
+    global global_object_control
 
     # Get records from the database.
-    db_impl = SimpleTransactionDBImpl(global_db_connection)
+    db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
 
     if symbol:
         simple_transaction_filter = SimpleTransactionDBImpl.SimpleTransactionFilter()
@@ -298,10 +272,10 @@ def expense_category(user_identifier):
     List expense categories.
     """
 
-    global global_db_connection
+    global global_object_control
 
     # Get records from the database
-    control = ExpenseCategoryControl(global_db_connection)
+    control = ExpenseCategoryControl(global_object_control.global_db_connection)
     if user_identifier:
         list_of_expense_category = control.get_all_filtered_by_user_identifier(user_identifier)
         printer_impl = ExpenseCategoryTextPrinterImpl()
@@ -327,29 +301,30 @@ def build_global_config(global_config_file_path: str) -> dict:
 
 
 def lazy_init_global_objects(global_config_ir):
-    global global_flag_initialized_global_objects
-    global global_db_connection
-    if global_flag_initialized_global_objects is True:
+    global global_object_control
+    if global_object_control.global_flag_initialized_global_objects is True:
         return
-    global_flag_initialized_global_objects = True
-    global_db_connection = DBConnection(global_config_ir)
-    global_db_connection.do_initial_setup()
+    global_object_control.global_flag_initialized_global_objects = True
+    global_object_control.global_db_connection = DBConnection(global_config_ir)
+    global_object_control.global_db_connection.do_initial_setup()
+    global_object_control.fact_data_control = FactDataControl(global_object_control.global_db_connection)
+    global_object_control.fact_data_control.bootstrap()
 
 
 def initialize_global_objects():
-    global global_config_ir
-    global_config_file_path = './config/global_config.yaml'
-    global_config_ir = build_global_config(global_config_file_path)
+    global global_object_control
+    const_global_config_file_path = './config/global_config.yaml'
+    global_object_control.global_config_ir = build_global_config(const_global_config_file_path)
 
-    if global_config_ir is None:
+    if global_object_control.global_config_ir is None:
         logger.error('Global configuration is malformed.')
         sys.exit(-1)
-    lazy_init_global_objects(global_config_ir)
+    lazy_init_global_objects(global_object_control.global_config_ir)
 
 
 def cleanup_global_objects():
-    if global_db_connection:
-        global_db_connection.close()
+    if global_object_control.global_db_connection:
+        global_object_control.global_db_connection.close()
 
 
 def main():
