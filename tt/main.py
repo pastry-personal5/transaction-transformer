@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module interprets command from a user, the do the job.
+This module interprets command from a user, then do the job.
 """
 
 import datetime
