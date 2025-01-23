@@ -1,4 +1,4 @@
-.PHONY: all checkmake clean lint shellcheck style test unittest
+.PHONY: all checkmake clean lint reqs shellcheck style test unittest
 
 all: checkmake shellcheck style lint test
 
@@ -11,6 +11,9 @@ lint:
 	pylint --rcfile=./.pylintrc ./tt/*.py || true
 	pylint --rcfile=./.pylintrc ./tools/*.py || true
 	pylint --rcfile=./.pylintrc ./tests/*.py || true
+
+reqs:
+	pipreqs --encoding utf-8
 
 shellcheck:
 	shellcheck tools/*.sh || true
