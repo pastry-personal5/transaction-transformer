@@ -11,17 +11,21 @@ from tt.simple_transaction import SimpleTransaction
 from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
 
 
-class SimplePortfolioControl():
+class SimplePortfolioControl:
 
     def __init__(self, fact_data_control: FactDataControl):
         self.fact_data_control = fact_data_control  # It's a reference to a `control`
 
-    def _apply_stock_split(self, portfolio_snapshot_date: datetime.date, p: SimplePortfolio):
-        const_symbol_namespace = 'NASDAQ'
+    def _apply_stock_split(
+        self, portfolio_snapshot_date: datetime.date, p: SimplePortfolio
+    ):
+        const_symbol_namespace = "NASDAQ"
         p_dict = p.p
         for symbol in p_dict:
             # Get a list[StockSplit]
-            list_of_stock_split = self.fact_data_control.stock_split_control.get_all_filtered_by_symbol_and_symbol_namespace(symbol, const_symbol_namespace)
+            list_of_stock_split = self.fact_data_control.stock_split_control.get_all_filtered_by_symbol_and_symbol_namespace(
+                symbol, const_symbol_namespace
+            )
             if len(list_of_stock_split) <= 0:
                 continue
             for s in list_of_stock_split:
@@ -29,11 +33,21 @@ class SimplePortfolioControl():
                 if event_date > portfolio_snapshot_date:
                     numerator = s.numerator
                     denominator = s.denominator
-                    p_dict[symbol]['amount'] = p_dict[symbol]['amount'] * numerator / denominator
-                    p_dict[symbol]['open_price'] = p_dict[symbol]['open_price'] * denominator / numerator
-                    logger.info(f'Found Stock Split on ({event_date}). numerator({numerator}) denominator({denominator}) amount({p_dict[symbol]['amount']}) open_price({p_dict[symbol]['open_price']})')
+                    p_dict[symbol]["amount"] = (
+                        p_dict[symbol]["amount"] * numerator / denominator
+                    )
+                    p_dict[symbol]["open_price"] = (
+                        p_dict[symbol]["open_price"] * denominator / numerator
+                    )
+                    logger.info(
+                        f"Found Stock Split on ({event_date}). numerator({numerator}) denominator({denominator}) amount({p_dict[symbol]['amount']}) open_price({p_dict[symbol]['open_price']})"
+                    )
 
-    def build_portfolio(self, list_of_simple_transactions: list[SimpleTransaction], portfolio_snapshot_date: Optional[datetime.date]):
+    def build_portfolio(
+        self,
+        list_of_simple_transactions: list[SimpleTransaction],
+        portfolio_snapshot_date: Optional[datetime.date],
+    ):
         p = SimplePortfolio()
         for transaction in list_of_simple_transactions:
             # If `portfolio_snapshot_date` is given.
@@ -48,16 +62,18 @@ class SimplePortfolioControl():
 
     def do_investing_dot_com_portfolio_export(self, portfolio: SimplePortfolio) -> None:
         try:
-            output_file_path = './data/investing_dot_com_portfolio.txt'
-            f = open(output_file_path, 'w', encoding='utf-8')
-            tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(f, portfolio)
+            output_file_path = "./data/investing_dot_com_portfolio.txt"
+            f = open(output_file_path, "w", encoding="utf-8")
+            tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(
+                f, portfolio
+            )
             f.close()
         except IOError as e:
-            logger.error(f'IOError: {e}')
-            logger.error('The file path was: %s' % output_file_path)
+            logger.error(f"IOError: {e}")
+            logger.error("The file path was: %s" % output_file_path)
 
     def do_yahoo_finance_web_export(self, portfolio):
-        config_file_path = './config/yahoo.yaml'
+        config_file_path = "./config/yahoo.yaml"
         yahoo_finance_web_exporter = YahooFinanceWebExporter()
         if not yahoo_finance_web_exporter.read_config(config_file_path):
             return False

@@ -16,9 +16,9 @@ Base = declarative_base()  # An sqlalchemy's base class.
 
 class StockSplit(Base):
 
-    __tablename__ = 'stock_splits'
+    __tablename__ = "stock_splits"
     __table_args__ = {
-        'mysql_charset': 'utf8mb4',
+        "mysql_charset": "utf8mb4",
     }
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     denominator = sqlalchemy.Column(sqlalchemy.Integer)
@@ -37,32 +37,37 @@ class StockSplit(Base):
         self.symbol_namespace = None
 
     def __str__(self):
-        return f'event_date({self.event_date}) symbol({self.symbol}) numerator({self.numerator}) denominator({self.denominator}) symbol_namespace({self.symbol_namespace})'
+        return f"event_date({self.event_date}) symbol({self.symbol}) numerator({self.numerator}) denominator({self.denominator}) symbol_namespace({self.symbol_namespace})"
 
     def __eq__(self, other):
-        '''
+        """
         `__eq__` tests equality.
         # @Warning Please note that `__eq__` function is customized one. Several are ignored, intentionally.
-        '''
+        """
         if isinstance(other, StockSplit):
-            return self.event_date == other.event_date \
-                and self.symbol == other.symbol \
-                and self.denominator == other.denominator \
-                and self.numerator == other.numerator \
-                and self.symbol_namespace == other.symbol_namespace \
-
+            return (
+                self.event_date == other.event_date
+                and self.symbol == other.symbol
+                and self.denominator == other.denominator
+                and self.numerator == other.numerator
+                and self.symbol_namespace == other.symbol_namespace
+            )
         return False
 
     def __hash__(self):
-        '''
+        """
         `__hash__` returns a unique hash of an object.
         @Warning Please note that `__eq__` function is customized one. Several fields are ignored, intentionally.
-        '''
-        return hash((self.event_date,
-                     self.symbol,
-                     self.denominator,
-                     self.numerator,
-                     self.symbol_namespace))
+        """
+        return hash(
+            (
+                self.event_date,
+                self.symbol,
+                self.denominator,
+                self.numerator,
+                self.symbol_namespace,
+            )
+        )
 
 
 class StockSplitDBImpl(DBImplBase):
@@ -97,10 +102,18 @@ class StockSplitDBImpl(DBImplBase):
             # The finally block still executes, even if return is called inside the except.
             session.close()
 
-    def get_all_filtered_by_symbol_and_symbol_namespace(self, symbol: str, symbol_namespace) -> list[StockSplit]:
+    def get_all_filtered_by_symbol_and_symbol_namespace(
+        self, symbol: str, symbol_namespace
+    ) -> list[StockSplit]:
         try:
             with self._get_session() as session:
-                return session.query(StockSplit).filter(StockSplit.symbol == symbol).filter(StockSplit.symbol_namespace == symbol_namespace).order_by(asc(StockSplit.event_date)).all()
+                return (
+                    session.query(StockSplit)
+                    .filter(StockSplit.symbol == symbol)
+                    .filter(StockSplit.symbol_namespace == symbol_namespace)
+                    .order_by(asc(StockSplit.event_date))
+                    .all()
+                )
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching records: {e}")
             return []
@@ -114,15 +127,15 @@ class StockSplitDBImpl(DBImplBase):
             return []
 
 
-class StockSplitImporter():
+class StockSplitImporter:
 
     def __init__(self):
         pass
 
     def import_from_file(self, input_file_path: str) -> list[StockSplit]:
-        logger.info(f'Try to import from a file path ({input_file_path})...')
+        logger.info(f"Try to import from a file path ({input_file_path})...")
         try:
-            fp = open(input_file_path, 'rb')
+            fp = open(input_file_path, "rb")
             # One is going to pass it as an integer also as an index 0(0-indexed).
             # That means the first sheet.
             const_sheet_name = 0
@@ -131,7 +144,7 @@ class StockSplitImporter():
             df = pandas.read_excel(fp, sheet_name=const_sheet_name)
             fp.close()
         except IOError as e:
-            logger.error('An IO error has been occurred.')
+            logger.error("An IO error has been occurred.")
             logger.error(e)
             return []
         return self._build_stock_split(df)
@@ -155,49 +168,61 @@ class StockSplitImporter():
 
             list_of_stock_split.append(t)
 
-        logger.info(f'The length of list_of_expense_transaction is ({len(list_of_stock_split)}).')
+        logger.info(
+            f"The length of list_of_expense_transaction is ({len(list_of_stock_split)})."
+        )
         return list_of_stock_split
 
 
-class StockSplitControl():
+class StockSplitControl:
 
     def __init__(self, db_connection: DBConnection):
         self.db_impl = StockSplitDBImpl(db_connection)
         self.importer = StockSplitImporter()
 
-    def _get_list_to_be_appended(self, target_list: list[StockSplit], source_list: list[StockSplit]) -> list[StockSplit]:
-        '''
+    def _get_list_to_be_appended(
+        self, target_list: list[StockSplit], source_list: list[StockSplit]
+    ) -> list[StockSplit]:
+        """
         Here,
         `target_list` is a list which was read from a DB;
         `source_list` is a list which was read from a file.
-        '''
+        """
         len_target = len(target_list)
         len_source = len(source_list)
-        logger.info(f'The length of target_list is ({len_target})')
-        logger.info(f'The length of source_list is ({len_source})')
+        logger.info(f"The length of target_list is ({len_target})")
+        logger.info(f"The length of source_list is ({len_source})")
         set_target = set(target_list)
         set_source = set(source_list)
         # Find element in set_source that are not in set_target
         difference_set = set_source - set_target
         list_to_return = list(difference_set)
         len_of_list_to_return = len(list_to_return)
-        logger.info(f'The length of list_to_return is ({len_of_list_to_return})')
+        logger.info(f"The length of list_to_return is ({len_of_list_to_return})")
         return list_to_return
 
     def bootstrap(self):
-        '''
+        """
         This method makes sure that stock split data is in the database.
-        '''
-        const_stock_splits_data_file_path = './data/stock_splits.xlsx'
+        """
+        const_stock_splits_data_file_path = "./data/stock_splits.xlsx"
         # Create a tablem if needed. When `create_table` returns `False`, ignore it.
         result = self.db_impl.create_table()
         if result:
-            logger.info('A table about stock splits has been created.')
+            logger.info("A table about stock splits has been created.")
         list_read_from_db = self.db_impl.get_all()
-        list_imported = self.importer.import_from_file(const_stock_splits_data_file_path)
-        list_to_be_appended = self._get_list_to_be_appended(list_read_from_db, list_imported)
+        list_imported = self.importer.import_from_file(
+            const_stock_splits_data_file_path
+        )
+        list_to_be_appended = self._get_list_to_be_appended(
+            list_read_from_db, list_imported
+        )
         # Ignore the return value.
         self.db_impl.insert_records(list_to_be_appended)
 
-    def get_all_filtered_by_symbol_and_symbol_namespace(self, symbol: str, symbol_namespace) -> list[StockSplit]:
-        return self.db_impl.get_all_filtered_by_symbol_and_symbol_namespace(symbol, symbol_namespace)
+    def get_all_filtered_by_symbol_and_symbol_namespace(
+        self, symbol: str, symbol_namespace
+    ) -> list[StockSplit]:
+        return self.db_impl.get_all_filtered_by_symbol_and_symbol_namespace(
+            symbol, symbol_namespace
+        )

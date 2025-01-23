@@ -5,9 +5,10 @@ from loguru import logger
 
 
 class InterceptHandler(logging.Handler):
-    '''
+    """
     It transfers any logs to loguru logger. Please look for https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging.
-    '''
+    """
+
     def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level if it exists.
         level: str | int
@@ -22,7 +23,9 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)

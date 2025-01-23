@@ -8,7 +8,7 @@ import pandas
 from pandas import DataFrame
 
 
-class Rule():
+class Rule:
 
     def __init__(self):
         self.source_category0 = None
@@ -25,10 +25,10 @@ def cli():
 
 
 @cli.command()
-@click.option('-f', '--file', required=True, help='A file to be loaded.')
+@click.option("-f", "--file", required=True, help="A file to be loaded.")
 def extract(file):
     input_file_path = file
-    output_file_path = './data/processed.yaml'
+    output_file_path = "./data/processed.yaml"
     (result, df) = read_input_file(input_file_path)
     if not result:
         return False
@@ -40,17 +40,17 @@ def extract(file):
 
 
 def read_input_file(input_file_path: str) -> tuple[bool, DataFrame]:
-    logger.info(f'Try to import from a file path ({input_file_path})...')
+    logger.info(f"Try to import from a file path ({input_file_path})...")
 
     try:
-        fp = open(input_file_path, 'rb')
+        fp = open(input_file_path, "rb")
         const_sheet_name = 0
         df = pandas.read_excel(fp, sheet_name=const_sheet_name)
         logger.info(pprint.pformat(df.info()))
         fp.close()
         return (True, df)
     except IOError as e:
-        logger.error('An IO error has been occurred.')
+        logger.error("An IO error has been occurred.")
         logger.error(e)
         return (False, None)
 
@@ -66,9 +66,13 @@ def process(df: DataFrame) -> list[Rule]:
         rule.source_category1 = str(row[5])
         rule.target_category0 = str(row[12])
 
-        tuple_to_test = (rule.source_category0, rule.source_category1, rule.target_category0)
+        tuple_to_test = (
+            rule.source_category0,
+            rule.source_category1,
+            rule.target_category0,
+        )
         if tuple_to_test in set_of_rules:
-            logger.error('Duplicated rules have been found.')
+            logger.error("Duplicated rules have been found.")
             pprint.pprint(tuple_to_test)
             return None
 
@@ -91,50 +95,58 @@ def write_output_file(output_file_path: str, list_of_rules: list[Rule]):
         target:
           category0: 수입 앱테크
     """
-    logger.info(f'Try to write a file with a file path ({output_file_path})...')
+    logger.info(f"Try to write a file with a file path ({output_file_path})...")
 
     try:
-        fp = open(output_file_path, 'w', encoding='utf-8')
-        lf = '\n'
-        header = 'rules:' + lf
+        fp = open(output_file_path, "w", encoding="utf-8")
+        lf = "\n"
+        header = "rules:" + lf
         fp.write(header)
         for rule in list_of_rules:
             if rule.source_category0:
-                output_for_source_category0 = '      category0:' + ' ' + rule.source_category0 + lf
+                output_for_source_category0 = (
+                    "      category0:" + " " + rule.source_category0 + lf
+                )
             else:
-                output_for_source_category0 = '      category0:' + lf
+                output_for_source_category0 = "      category0:" + lf
             if rule.source_category1:
-                output_for_source_category1 = '      category1:' + ' ' + rule.source_category1 + lf
+                output_for_source_category1 = (
+                    "      category1:" + " " + rule.source_category1 + lf
+                )
             else:
-                output_for_source_category1 = '      category1:' + lf
+                output_for_source_category1 = "      category1:" + lf
             if rule.source_memo0:
-                output_for_source_memo0 = '      memo0:' + ' ' + rule.source_memo0 + lf
+                output_for_source_memo0 = "      memo0:" + " " + rule.source_memo0 + lf
             else:
-                output_for_source_memo0 = '      memo0:' + lf
+                output_for_source_memo0 = "      memo0:" + lf
             if rule.source_memo1:
-                output_for_source_memo1 = '      memo1:' + ' ' + rule.source_memo1 + lf
+                output_for_source_memo1 = "      memo1:" + " " + rule.source_memo1 + lf
             else:
-                output_for_source_memo1 = '      memo1:' + lf
+                output_for_source_memo1 = "      memo1:" + lf
             if rule.source_account:
-                output_for_source_account = '      account:' + ' ' + rule.source_account + lf
+                output_for_source_account = (
+                    "      account:" + " " + rule.source_account + lf
+                )
             else:
-                output_for_source_account = '      account:' + lf
+                output_for_source_account = "      account:" + lf
             if rule.target_category0:
-                output_for_target_category0 = '      category0:' + ' ' + rule.target_category0 + lf
+                output_for_target_category0 = (
+                    "      category0:" + " " + rule.target_category0 + lf
+                )
             else:
-                output_for_target_category0 = '      category0:' + lf
-            fp.write('  - source:' + lf)
+                output_for_target_category0 = "      category0:" + lf
+            fp.write("  - source:" + lf)
             fp.write(output_for_source_category0)
             fp.write(output_for_source_category1)
             fp.write(output_for_source_memo0)
             fp.write(output_for_source_account)
             fp.write(output_for_source_memo1)
-            fp.write('    target:' + lf)
+            fp.write("    target:" + lf)
             fp.write(output_for_target_category0)
         fp.close()
         return True
     except IOError as e:
-        logger.error('An IO error has been occurred.')
+        logger.error("An IO error has been occurred.")
         logger.error(e)
         return False
 
@@ -143,5 +155,5 @@ def main():
     cli()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

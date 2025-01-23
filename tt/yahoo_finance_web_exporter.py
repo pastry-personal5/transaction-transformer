@@ -44,14 +44,14 @@ class YahooFinanceWebExporter:
 
     def read_config(self, config_filepath):
         try:
-            config_file = open(config_filepath, 'rb')
+            config_file = open(config_filepath, "rb")
             config = yaml.safe_load(config_file)
-            self.user_id = config['yahoo_account']['id']
-            self.user_password = config['yahoo_account']['password']
+            self.user_id = config["yahoo_account"]["id"]
+            self.user_password = config["yahoo_account"]["password"]
             return True
         except IOError as e:
-            logger.error('IOError.', e)
-            logger.error('Configuration filepath was: %s' % config_filepath)
+            logger.error("IOError.", e)
+            logger.error("Configuration filepath was: %s" % config_filepath)
             return False
 
     def verify_config(self):
@@ -69,31 +69,37 @@ class YahooFinanceWebExporter:
             self.web_client_context.cleanup()
 
     def visit_login_page(self, user_id, user_password):
-        '''
+        """
         Please note that word "id" can be "user name", "username", etc. in Yahoo Web Pages.
         Please note that word "password" can be "passwd", "pw", etc. in Yahoo Web Pages.
-        '''
+        """
         driver = self.web_client_context.driver
 
         # It's the yahoo.com main page.
-        logger.info('Visiting Yahoo Fiance...')
-        driver.get('https://finance.yahoo.com/portfolios/')
+        logger.info("Visiting Yahoo Fiance...")
+        driver.get("https://finance.yahoo.com/portfolios/")
         const_time_to_wait = 4
         WebDriverWait(driver, const_time_to_wait).until(
-            EC.presence_of_element_located((By.ID, 'login-container'))
+            EC.presence_of_element_located((By.ID, "login-container"))
         )
-        element_for_login_container = driver.find_element(by=By.ID, value='login-container')
+        element_for_login_container = driver.find_element(
+            by=By.ID, value="login-container"
+        )
         element_for_login_container.click()
 
         # It's now in a kind of "login-sign-in" page.
         logger.info('Visiting a kind of "login-sign-in" page...')
         WebDriverWait(driver, const_time_to_wait).until(
-            EC.presence_of_element_located((By.ID, 'login-username'))
+            EC.presence_of_element_located((By.ID, "login-username"))
         )
 
         # Enter user name in an HTML 'form,' then click 'Next' button.
-        element_for_login_user_name = driver.find_element(by=By.ID, value='login-username')
-        element_for_login_sign_in_button = driver.find_element(by=By.ID, value='login-signin')
+        element_for_login_user_name = driver.find_element(
+            by=By.ID, value="login-username"
+        )
+        element_for_login_sign_in_button = driver.find_element(
+            by=By.ID, value="login-signin"
+        )
         element_for_login_user_name.send_keys(user_id)
         time.sleep(const_time_to_wait)
         element_for_login_sign_in_button.click()
@@ -101,12 +107,14 @@ class YahooFinanceWebExporter:
         # It's now in a kind of "enter-your-password" page.
         logger.info('Visiting a kind of "enter-your-password" page...')
         WebDriverWait(driver, const_time_to_wait).until(
-            EC.presence_of_element_located((By.ID, 'login-passwd'))
+            EC.presence_of_element_located((By.ID, "login-passwd"))
         )
 
-        logger.info('Sending a password text and a mouse click event...')
-        element_for_login_password = driver.find_element(by=By.ID, value='login-passwd')
-        element_for_login_sign_in_button = driver.find_element(by=By.ID, value='login-signin')
+        logger.info("Sending a password text and a mouse click event...")
+        element_for_login_password = driver.find_element(by=By.ID, value="login-passwd")
+        element_for_login_sign_in_button = driver.find_element(
+            by=By.ID, value="login-signin"
+        )
         element_for_login_password.send_keys(user_password)
         time.sleep(const_time_to_wait)
         element_for_login_sign_in_button.click()
@@ -119,27 +127,31 @@ class YahooFinanceWebExporter:
         # Let's try to locate a <div> with an "id."
         try:
             WebDriverWait(driver, const_time_to_wait).until(
-                EC.presence_of_element_located((By.ID, 'challenge-header'))
+                EC.presence_of_element_located((By.ID, "challenge-header"))
             )
         except selenium.common.exceptions.TimeoutException:
-            logger.info('Skipping challenge-header <div> element.')
-        element_for_remember_me_button = driver.find_element(by=By.NAME, value='rememberMe')  # <button>
+            logger.info("Skipping challenge-header <div> element.")
+        element_for_remember_me_button = driver.find_element(
+            by=By.NAME, value="rememberMe"
+        )  # <button>
         element_for_remember_me_button.click()
 
         # It's now a kind of "input two-step-auth verification code" page.
-        logger.info('Visiting a kind of "input two-step-auth verification code" page...')
+        logger.info(
+            'Visiting a kind of "input two-step-auth verification code" page...'
+        )
         WebDriverWait(driver, const_time_to_wait).until(
-            EC.presence_of_element_located((By.ID, 'verification-code-field'))
+            EC.presence_of_element_located((By.ID, "verification-code-field"))
         )
 
-        print('Input your two step authentication code using your web browser...')
-        print('Then')
+        print("Input your two step authentication code using your web browser...")
+        print("Then")
 
         self.wait_for_page_load()
 
     def wait_for_page_load(self):
         while True:
-            print('Input \'c\' to continue: ')
+            print("Input 'c' to continue: ")
             input_from_user = input()
-            if input_from_user == 'c':
+            if input_from_user == "c":
                 return

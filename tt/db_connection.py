@@ -10,12 +10,12 @@ from sqlalchemy.engine.url import URL
 import tt.log_control
 
 
-class DBConnection():
+class DBConnection:
 
     def __init__(self, global_config_ir):
         self.alchemy_conn = None
         self.conn = None
-        self.database_name = 'finance'
+        self.database_name = "finance"
         self.engine = None  # An SQLAlchemy engine.
         self.global_config_ir = global_config_ir
 
@@ -25,40 +25,37 @@ class DBConnection():
 
     def connect(self):
         assert self.global_config_ir is not None
-        host = self.global_config_ir['mariadb']['host']
-        port = self.global_config_ir['mariadb']['port']  # Integer
-        user = self.global_config_ir['mariadb']['user']
-        password = self.global_config_ir['mariadb']['password']
+        host = self.global_config_ir["mariadb"]["host"]
+        port = self.global_config_ir["mariadb"]["port"]  # Integer
+        user = self.global_config_ir["mariadb"]["user"]
+        password = self.global_config_ir["mariadb"]["password"]
         try:
             self.conn = mariadb.connect(
-                host=host,
-                port=port,
-                user=user,
-                password=password
+                host=host, port=port, user=user, password=password
             )
             self.conn.autocommit = True
         except mariadb.Error as e:
-            logger.error(f'Error connecting to the database: {e}')
+            logger.error(f"Error connecting to the database: {e}")
             sys.exit(-1)
         encoded_password = quote(password)
-        connection_string = f'mariadb+mariadbconnector://{user}:{encoded_password}@{host}:{port}/{self.database_name}'
+        connection_string = f"mariadb+mariadbconnector://{user}:{encoded_password}@{host}:{port}/{self.database_name}"
         self.engine = sqlalchemy.create_engine(connection_string, echo=True)
         self._redirect_sqlalchemy_logging_to_loguru()
         self.alchemy_conn = self.engine.connect()
 
     def _redirect_sqlalchemy_logging_to_loguru(self):
-        sa_logger = logging.getLogger('sqlalchemy.engine.Engine')
+        sa_logger = logging.getLogger("sqlalchemy.engine.Engine")
         sa_logger.propagate = False
         sa_logger.handlers = [tt.log_control.InterceptHandler()]
 
     def use_database(self):
         database_name = self.database_name
         cur = self.cur()
-        sql_string = 'USE' + ' ' + database_name
+        sql_string = "USE" + " " + database_name
         try:
             cur.execute(sql_string)
         except mariadb.Error as e:
-            logger.error(f'Error: {e}')
+            logger.error(f"Error: {e}")
             sys.exit(-1)
 
     def commit(self):

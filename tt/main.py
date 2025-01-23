@@ -61,8 +61,12 @@ def create():
 
 # <program> create kiwoom-transaction
 @create.command()
-@click.option('--kiwoom-config', required=True, help='Kiwoom configuration file path.')
-@click.option('--portfolio-snapshot-date', required=False, help='A date for portfolio snapshot. Optional.')
+@click.option("--kiwoom-config", required=True, help="Kiwoom configuration file path.")
+@click.option(
+    "--portfolio-snapshot-date",
+    required=False,
+    help="A date for portfolio snapshot. Optional.",
+)
 def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
     """
     Import Kiwoom Securities transaction file and create transaction records in a database.
@@ -73,16 +77,22 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
         flag_read_input_from_kiwoom = True
 
     if not flag_read_input_from_kiwoom:
-        logger.error('Currently only reading files from Kiwoom Securities is supported.')
+        logger.error(
+            "Currently only reading files from Kiwoom Securities is supported."
+        )
         sys.exit(-1)
 
     portfolio_snapshot_date_obj = None
     if portfolio_snapshot_date:
         try:
-            expected_date_format = '%Y-%m-%d'
-            portfolio_snapshot_date_obj = datetime.datetime.strptime(portfolio_snapshot_date, expected_date_format).date()
+            expected_date_format = "%Y-%m-%d"
+            portfolio_snapshot_date_obj = datetime.datetime.strptime(
+                portfolio_snapshot_date, expected_date_format
+            ).date()
         except ValueError as e:
-            logger.error(f'Error while parsing a portfolio snapshot date: ({portfolio_snapshot_date}). Expected date format is ({expected_date_format}). For example, 2007-12-31.')
+            logger.error(
+                f"Error while parsing a portfolio snapshot date: ({portfolio_snapshot_date}). Expected date format is ({expected_date_format}). For example, 2007-12-31."
+            )
             logger.error(e)
             sys.exit(-1)
 
@@ -90,44 +100,59 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
     list_of_simple_transactions = None
 
     try:
-        list_of_simple_transactions = tt.kiwoom_text_importer.build_list_of_simple_transactions(kiwoom_config_file_path)
+        list_of_simple_transactions = (
+            tt.kiwoom_text_importer.build_list_of_simple_transactions(
+                kiwoom_config_file_path
+            )
+        )
         if not list_of_simple_transactions:
             sys.exit(-1)
     except IOError as e:
-        logger.error(f'IOError: {e}')
-        logger.error('Input file path was: %s' % kiwoom_config_file_path)
+        logger.error(f"IOError: {e}")
+        logger.error("Input file path was: %s" % kiwoom_config_file_path)
         sys.exit(-1)
 
     global global_object_control
     db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
     db_impl.export_all(list_of_simple_transactions)
 
-    simple_portfolio_control = SimplePortfolioControl(global_object_control.fact_data_control)
-    portfolio = simple_portfolio_control.build_portfolio(list_of_simple_transactions, portfolio_snapshot_date_obj)
+    simple_portfolio_control = SimplePortfolioControl(
+        global_object_control.fact_data_control
+    )
+    portfolio = simple_portfolio_control.build_portfolio(
+        list_of_simple_transactions, portfolio_snapshot_date_obj
+    )
     simple_portfolio_control.do_investing_dot_com_portfolio_export(portfolio)
 
 
 # <program> create bank-salad-expense-transaction
 @create.command()
-@click.option('-f', '--file', required=True, help='A file exported from Bank Salad which contains expense transactions.')
-@click.option('-u', '--user-identifier', required=True, help='A user identifier.')
+@click.option(
+    "-f",
+    "--file",
+    required=True,
+    help="A file exported from Bank Salad which contains expense transactions.",
+)
+@click.option("-u", "--user-identifier", required=True, help="A user identifier.")
 def bank_salad_expense_transaction(file: str, user_identifier: str):
     """
     Import a file generated from Bank Salad service which contains expense transactions.
     """
     global global_object_control
 
-    control = BankSaladExpenseTransactionControl(global_object_control.global_db_connection)
+    control = BankSaladExpenseTransactionControl(
+        global_object_control.global_db_connection
+    )
     result = control.import_and_append_from_file(file, user_identifier)
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 # <program> create expense-transaction
 @create.command()
-@click.option('-u', '--user-identifier', required=True, help='A user identifier.')
+@click.option("-u", "--user-identifier", required=True, help="A user identifier.")
 def expense_transaction(user_identifier: str):
     """
     Create general expense transaction data from "Bank Salad expense transaction data in the database."
@@ -137,14 +162,19 @@ def expense_transaction(user_identifier: str):
     control = ExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.import_and_append_from_database(user_identifier)
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 # <program> create expense-category
 @create.command()
-@click.option('-f', '--file', required=True, help='A file contains expense category configuration.')
+@click.option(
+    "-f",
+    "--file",
+    required=True,
+    help="A file contains expense category configuration.",
+)
 def expense_category(file):
     """
     Create or update records of expense category based on a given file.
@@ -154,9 +184,9 @@ def expense_category(file):
     control = ExpenseCategoryControl(global_object_control.global_db_connection)
     result = control.import_and_append_from_file(file)
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 @cli.group()
@@ -175,12 +205,14 @@ def bank_salad_expense_transaction():
     """
     global global_object_control
 
-    control = BankSaladExpenseTransactionControl(global_object_control.global_db_connection)
+    control = BankSaladExpenseTransactionControl(
+        global_object_control.global_db_connection
+    )
     result = control.delete()
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 # <program> delete expense-category
@@ -194,9 +226,9 @@ def expense_category():
     control = ExpenseCategoryControl(global_object_control.global_db_connection)
     result = control.delete()
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 # <program> delete expense-category
@@ -210,9 +242,9 @@ def expense_transaction():
     control = ExpenseTransactionControl(global_object_control.global_db_connection)
     result = control.delete()
     if result:
-        logger.info('Succeeded.')
+        logger.info("Succeeded.")
     else:
-        logger.info('Failed.')
+        logger.info("Failed.")
 
 
 @cli.group()
@@ -241,7 +273,7 @@ def get():
 
 # <program> get simple-transaction
 @get.command()
-@click.option('--symbol', help='Stock symbol to match.')
+@click.option("--symbol", help="Stock symbol to match.")
 def simple_transaction(symbol):
     """
     List simple transactions.
@@ -253,9 +285,11 @@ def simple_transaction(symbol):
 
     if symbol:
         simple_transaction_filter = SimpleTransactionDBImpl.SimpleTransactionFilter()
-        simple_transaction_filter.flag_filter_by['symbol'] = True
-        simple_transaction_filter.value_dict['symbol'] = symbol
-        simple_transaction_records = db_impl.get_records_with_filter(simple_transaction_filter)
+        simple_transaction_filter.flag_filter_by["symbol"] = True
+        simple_transaction_filter.value_dict["symbol"] = symbol
+        simple_transaction_records = db_impl.get_records_with_filter(
+            simple_transaction_filter
+        )
         printer_impl = SimpleTransactionTextPrinterImpl()
         printer_impl.print_all(simple_transaction_records)
     else:
@@ -266,7 +300,7 @@ def simple_transaction(symbol):
 
 # <program> get expense-category --user-identifier <USER IDENTIFIER>
 @get.command()
-@click.option('--user-identifier', help='User identifier')
+@click.option("--user-identifier", help="User identifier")
 def expense_category(user_identifier):
     """
     List expense categories.
@@ -277,7 +311,9 @@ def expense_category(user_identifier):
     # Get records from the database
     control = ExpenseCategoryControl(global_object_control.global_db_connection)
     if user_identifier:
-        list_of_expense_category = control.get_all_filtered_by_user_identifier(user_identifier)
+        list_of_expense_category = control.get_all_filtered_by_user_identifier(
+            user_identifier
+        )
         printer_impl = ExpenseCategoryTextPrinterImpl()
         printer_impl.print_all(list_of_expense_category)
     else:
@@ -289,13 +325,13 @@ def expense_category(user_identifier):
 def build_global_config(global_config_file_path: str) -> dict:
     global_config_to_return = {}
     try:
-        config_file = open(global_config_file_path, 'rb')
+        config_file = open(global_config_file_path, "rb")
         config = yaml.safe_load(config_file)
         global_config_to_return = config.copy()
         config_file.close()
     except IOError as e:
-        logger.error(f'IOError: {e}')
-        logger.error('A configuration file path was: %s' % global_config_file_path)
+        logger.error(f"IOError: {e}")
+        logger.error("A configuration file path was: %s" % global_config_file_path)
         return None
     return global_config_to_return
 
@@ -307,17 +343,21 @@ def lazy_init_global_objects(global_config_ir):
     global_object_control.global_flag_initialized_global_objects = True
     global_object_control.global_db_connection = DBConnection(global_config_ir)
     global_object_control.global_db_connection.do_initial_setup()
-    global_object_control.fact_data_control = FactDataControl(global_object_control.global_db_connection)
+    global_object_control.fact_data_control = FactDataControl(
+        global_object_control.global_db_connection
+    )
     global_object_control.fact_data_control.bootstrap()
 
 
 def initialize_global_objects():
     global global_object_control
-    const_global_config_file_path = './config/global_config.yaml'
-    global_object_control.global_config_ir = build_global_config(const_global_config_file_path)
+    const_global_config_file_path = "./config/global_config.yaml"
+    global_object_control.global_config_ir = build_global_config(
+        const_global_config_file_path
+    )
 
     if global_object_control.global_config_ir is None:
-        logger.error('Global configuration is malformed.')
+        logger.error("Global configuration is malformed.")
         sys.exit(-1)
     lazy_init_global_objects(global_object_control.global_config_ir)
 
@@ -333,5 +373,5 @@ def main():
     cleanup_global_objects()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

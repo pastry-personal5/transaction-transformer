@@ -184,17 +184,17 @@ class TestExpenseTransactionControl(unittest.TestCase):
         mock_transaction = BankSaladExpenseTransaction()
         mock_transaction.date = datetime.date(2024, 1, 1)
         mock_transaction.time = datetime.time(12, 30)
-        mock_transaction.category0 = 'Food'
-        mock_transaction.memo0 = 'Test'
+        mock_transaction.category0 = "Food"
+        mock_transaction.memo0 = "Test"
         mock_transaction.amount = 100
-        mock_transaction.currency = 'USD'
-        mock_transaction.account = 'Bank Account'
+        mock_transaction.currency = "USD"
+        mock_transaction.account = "Bank Account"
 
-        result = self.control._convert([mock_transaction], {'rules': []})
+        result = self.control._convert([mock_transaction], {"rules": []})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].amount, 100)
-        self.assertEqual(result[0].category0, '카테고리 없음')
+        self.assertEqual(result[0].category0, "카테고리 없음")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
