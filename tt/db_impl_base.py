@@ -13,6 +13,7 @@ class DBImplBase:
     def __init__(self, db_connection: DBConnection):
         self.const_default_table_charset = "utf8mb4"
         self.db_connection = db_connection
+        self.table_name = None
 
     def handle_general_sql_execution_error(self, exception_object, sql_string):
         logger.error(f"Error executing the SQL. Error was: {exception_object}")
