@@ -8,6 +8,7 @@ cat "${BASE_DIR}"/data/kiwoom-exported-transactions/year-2021-<YOUR_ACCOUNT_0000
 cat "${BASE_DIR}"/data/kiwoom-exported-transactions/year-2022-<YOUR_ACCOUNT_0000_HERE>.csv >> "${BASE_DIR}"/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
 cat "${BASE_DIR}"/data/kiwoom-exported-transactions/year-2023-<YOUR_ACCOUNT_0000_HERE>.csv >> "${BASE_DIR}"/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
 cat "${BASE_DIR}"/data/kiwoom-exported-transactions/year-2024-<YOUR_ACCOUNT_0000_HERE>.csv >> "${BASE_DIR}"/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
+cat "${BASE_DIR}"/data/kiwoom-exported-transactions/year-2025-<YOUR_ACCOUNT_0000_HERE>.csv >> "${BASE_DIR}"/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
 
 python "${BASE_DIR}"/tools/cleanup_kiwoom_data.py --file "${BASE_DIR}"/data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
 
