@@ -1,8 +1,10 @@
 """
 This module does masking and unmasking of sensitive data in configuration files.
+Here, masking means replace sensitive data to a non-sensitive data.
 """
 
 import argparse
+import pprint
 import sys
 import yaml
 
@@ -64,16 +66,23 @@ def do_main_thing_with_args(args):
         sys.exit(-1)
 
     masks = config["masks"]
+    total_count = 0
     for m in masks:
         files = m["files"]
         replacement = m["replacement"]
 
+        logger.info(pprint.pformat(files))
+        logger.info(pprint.pformat(replacement))
+
+        batch_count = 0
         for filepath in files:
             output_lines = []
             try:
                 f = open(filepath, "r", encoding="utf-8")
+                count = 0
                 for line in f.readlines():
                     for r in replacement:
+                        count += 1
                         if function == MASK:
                             line = line.replace(r["before"], r["after"])
                         else:
@@ -88,6 +97,11 @@ def do_main_thing_with_args(args):
                 logger.error("IOError.", e)
                 logger.error("Filepath was: %s" % filepath)
                 sys.exit(-1)
+            logger.info(f"Count was ({count})")
+            batch_count += count
+        logger.info(f"Batch count was ({batch_count})")
+        total_count += batch_count
+    logger.info(f"Total count was ({total_count})")
 
 
 def main():
