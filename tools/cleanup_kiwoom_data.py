@@ -145,7 +145,7 @@ def cleanup(file):
         try:
             cleanup_with_filepath(file)
         except IOError as e:
-            logger.error("An IO error has been occurred.")
+            logger.error("An IO error occurred.")
             logger.error(e)
             sys.exit(1)
 
