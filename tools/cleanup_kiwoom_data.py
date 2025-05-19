@@ -1,6 +1,10 @@
 """
 This module cleans up transaction data from Kiwoom Securities.
 It fixes double-quotation problems.
+It is a workaround for the Kiwoom Securities' CSV export issue.
+The CSV export from Kiwoom Securities has a problem with double-quotation marks.
+
+It is a kind of data cleansing.
 
 Pattern to replace:
 
@@ -28,9 +32,6 @@ from loguru import logger
 def get_correct_line_for_pattern_0000(
     prefix: str, postfix: str, match_object: re.Match
 ) -> str:
-    logger.info(match_object.group(1))
-    logger.info(match_object.group(2))
-    logger.info(match_object.group(3))
 
     to_insert = (
         match_object.group(1)
@@ -48,9 +49,6 @@ def get_correct_line_for_pattern_0000(
 def get_correct_line_for_pattern_0001(
     prefix: str, postfix: str, match_object: re.Match
 ) -> str:
-    logger.info(match_object.group(1))
-    logger.info(match_object.group(2))
-    logger.info(match_object.group(3))
 
     to_insert = (
         match_object.group(1)
@@ -72,8 +70,6 @@ def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> st
     span = match_object.span()
     prefix = line[0 : span[0]]  # Ends with ','
     postfix = line[span[1] :]  # Starts with data of a column
-    logger.info(prefix)
-    logger.info(postfix)
 
     return get_correct_line_for_pattern_0000(prefix, postfix, match_object)
 
@@ -83,8 +79,6 @@ def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> st
     span = match_object.span()
     prefix = line[0 : span[0]]  # Ends with ','
     postfix = line[span[1] :]  # Starts with data of a column
-    logger.info(prefix)
-    logger.info(postfix)
 
     # It's a heuristic to find a normal case.
     group3 = match_object.group(3)
@@ -123,14 +117,18 @@ def cleanup_with_filepath(filepath):
         match_object_0000 = re.search(pattern_0000, line)
         match_object_0001 = re.search(pattern_0001, line)
         if match_object_0000:
-            logger.info(match_object_0000)
             count_matched += 1
+            logger.info("Problematic line:")
+            logger.info(line)
             line = get_corrected_line_for_pattern_0000(line, match_object_0000)
+            logger.info("Fixed line:")
             logger.info(line)
         elif match_object_0001:
-            logger.info(match_object_0001)
             count_matched += 1
+            logger.info("Problematic line:")
+            logger.info(line)
             line = get_corrected_line_for_pattern_0001(line, match_object_0001)
+            logger.info("Fixed line:")
             logger.info(line)
         f.write(line)
 
