@@ -68,8 +68,8 @@ def get_correct_line_for_pattern_0001(
 # "abcd", defg, "hijk"
 def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> str:
     span = match_object.span()
-    prefix = line[0 : span[0]]  # Ends with ','
-    postfix = line[span[1] :]  # Starts with data of a column
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
 
     return get_correct_line_for_pattern_0000(prefix, postfix, match_object)
 
@@ -77,8 +77,8 @@ def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> st
 # "abcd", defg, hijk
 def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> str:
     span = match_object.span()
-    prefix = line[0 : span[0]]  # Ends with ','
-    postfix = line[span[1] :]  # Starts with data of a column
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
 
     # It's a heuristic to find a normal case.
     group3 = match_object.group(3)
