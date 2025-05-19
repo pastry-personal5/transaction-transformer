@@ -147,7 +147,7 @@ def cleanup(file):
         except IOError as e:
             logger.error("An IO error has been occurred.")
             logger.error(e)
-            sys.exit(-1)
+            sys.exit(1)
 
 
 def main():
