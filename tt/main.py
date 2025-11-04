@@ -27,7 +27,7 @@ from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
 from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
 from tt.stock_split import StockSplitControl
-
+from tt.bootstrap import BootstrapControl
 
 class GlobalObjectControl:
 
@@ -57,6 +57,18 @@ def create():
     This command creates an object.
     """
     pass
+
+@cli.group()
+def bootstrap():
+    """
+    This command bootstraps.
+    """
+
+@bootstrap.command()
+def database():
+    global global_object_control
+    bootstrap_control = BootstrapControl()
+    bootstrap_control.bootstrap(global_object_control.global_db_connection)
 
 
 # <program> create kiwoom-transaction
@@ -113,6 +125,9 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
         sys.exit(-1)
 
     global global_object_control
+    if not global_object_control.global_db_connection.is_in_valid_state():
+        logger.error("DB Connection is not valid. Please bootstrap first.")
+        sys.exit(-1)
     db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
     db_impl.export_all(list_of_simple_transactions)
 
@@ -260,7 +275,9 @@ def export():
 def yahoo_finance():
     # @FIXME(dennis.oh) Instead of None, read portfolio.
     portfolio = None
-    do_yahoo_finance_web_export(portfolio)
+    # global global_object_control
+    # control = SimplePortfolioControl(global_object_control.fact_data_control)
+    # control.do_yahoo_finance_web_export(portfolio)
 
 
 @cli.group()
@@ -343,10 +360,11 @@ def lazy_init_global_objects(global_config_ir):
     global_object_control.global_flag_initialized_global_objects = True
     global_object_control.global_db_connection = DBConnection(global_config_ir)
     global_object_control.global_db_connection.do_initial_setup()
-    global_object_control.fact_data_control = FactDataControl(
-        global_object_control.global_db_connection
-    )
-    global_object_control.fact_data_control.bootstrap()
+    if global_object_control.global_db_connection.is_in_valid_state():
+        global_object_control.fact_data_control = FactDataControl(
+            global_object_control.global_db_connection
+        )
+        global_object_control.fact_data_control.bootstrap()
 
 
 def initialize_global_objects():

@@ -1,3 +1,4 @@
+from enum import Flag
 import logging
 import sys
 from urllib.parse import quote
@@ -18,10 +19,12 @@ class DBConnection:
         self.database_name = "finance"
         self.engine = None  # An SQLAlchemy engine.
         self.global_config_ir = global_config_ir
+        self.flag_database_exists = True
 
     def do_initial_setup(self):
         self.connect()
-        self.use_database()
+        if self.flag_database_exists:
+            self.use_database()
 
     def connect(self):
         assert self.global_config_ir is not None
@@ -35,8 +38,14 @@ class DBConnection:
             )
             self.conn.autocommit = True
         except mariadb.Error as e:
-            logger.error(f"Error connecting to the database: {e}")
+            logger.error(f"Error connecting to the database system: {e}")
             sys.exit(-1)
+        cursor = self.conn.cursor()
+        cursor.execute(f"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{self.database_name}'")
+        result = cursor.fetchone()
+        if not result:
+            self.flag_database_exists = False
+            return
         encoded_password = quote(password)
         connection_string = f"mariadb+mariadbconnector://{user}:{encoded_password}@{host}:{port}/{self.database_name}"
         self.engine = sqlalchemy.create_engine(connection_string, echo=True)
@@ -68,3 +77,6 @@ class DBConnection:
     def cur(self):
         assert self.conn is not None
         return self.conn.cursor()
+
+    def is_in_valid_state(self) -> bool:
+        return self.flag_database_exists
