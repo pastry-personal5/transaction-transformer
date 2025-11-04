@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-python -m tt.main \
+uv run -m tt.main \
 create \
 kiwoom-transaction \
 --kiwoom-config ./data/kiwoom.yaml \
-
-python -m tt.main \
-create \
-kiwoom-transaction \
---kiwoom-config ./data/kiwoom.yaml \
---portfolio-snapshot-date=2022-09-30 \
