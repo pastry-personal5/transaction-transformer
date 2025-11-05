@@ -141,7 +141,7 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
             )
             transaction_file.close()
         except IOError as e:
-            logger.error("IOError.", e)
+            logger.error(f"IOError: {e}")
             logger.error("Transaction filepath was: %s" % transaction_filepath)
             return None
 
@@ -164,11 +164,11 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
                 logger.info(f"Length of merged was ({len(merged)})")
                 added_transaction_file.close()
             except IOError as e:
-                logger.error("IOError.", e)
+                logger.error(f"IOError: {e}")
                 logger.error("Transaction filepath was: %s" % transaction_filepath)
         config_file.close()
     except IOError as e:
-        logger.error("IOError.", e)
+        logger.error(f"IOError: {e}")
         logger.error("Configuration filepath was: %s" % config_filepath)
         return None
     return merged
