@@ -50,7 +50,7 @@ class YahooFinanceWebExporter:
             self.user_password = config["yahoo_account"]["password"]
             return True
         except IOError as e:
-            logger.error("IOError.", e)
+            logger.error(f"IOError: {e}")
             logger.error("Configuration filepath was: %s" % config_filepath)
             return False
 
