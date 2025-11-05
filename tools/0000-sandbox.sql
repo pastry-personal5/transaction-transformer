@@ -1,0 +1,1 @@
+select * from finance.expense_transactions where memo0 = 'AMAZON PAY INDIA PRIVA';

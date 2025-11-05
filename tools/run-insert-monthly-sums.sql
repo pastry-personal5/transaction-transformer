@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS expense_transactions_monthly_analysis (
+    user_identifier VARCHAR(128),
     month VARCHAR(7),          -- Stores the year and month (e.g., "2024-11")
     category0 VARCHAR(128),     -- Stores the category name
     total_sum DECIMAL(10, 0)   -- Stores the aggregated sum
@@ -12,8 +13,9 @@ DELIMITER $$
 CREATE PROCEDURE InsertMonthlySums()
 BEGIN
     -- Insert grouped data into the target table
-    INSERT INTO expense_transactions_monthly_analysis (month, category0, total_sum)
+    INSERT INTO expense_transactions_monthly_analysis (user_identifier, month, category0, total_sum)
     SELECT
+        s.user_identifier,
         DATE_FORMAT(s.transaction_datetime, '%Y-%m') AS month, -- Extract year-month
         s.category0,                                           -- Category
         SUM(s.amount) AS total_sum                             -- Sum of values
@@ -40,3 +42,6 @@ DO
     CALL InsertMonthlySums();
 
 show EVENTS;
+
+-- To delete.
+-- DELETE FROM expense_transactions_monthly_analysis;
