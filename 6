@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 set -x
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 --symbol IVV
 
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 --symbol TLT
 
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 --symbol AAPL
 
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 --symbol NVDA
 
-python -m tt.main \
+uv run -m tt.main \
 get \
 simple-transaction \
 --symbol TSLA
