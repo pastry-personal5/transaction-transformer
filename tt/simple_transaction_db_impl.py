@@ -142,7 +142,7 @@ class SimpleTransactionDBImpl(DBImplBase):
         cur = self.db_connection.cur()
 
         try:
-            sql_string = "CREATE DATABASE IF NOT EXISTS finance;"
+            sql_string = "CREATE DATABASE IF NOT EXISTS finance CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
             cur.execute(sql_string)
             sql_string = "USE finance;"
             cur.execute(sql_string)
