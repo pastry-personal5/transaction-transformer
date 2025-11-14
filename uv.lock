@@ -631,7 +631,7 @@ wheels = [
 [[package]]
 name = "transaction-transformer"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "click" },
