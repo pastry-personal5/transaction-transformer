@@ -161,7 +161,11 @@ cython_debug/
 #.idea/
 
 # Custom
-data/*
-!data/.gitkeep
-config/*.template
+data/active/*
+data/private/*
+!data/**/.gitkeep
+config/**/*.template
+config/active/*
+config/private/*
+!config/**/.gitkeep
 .vscode

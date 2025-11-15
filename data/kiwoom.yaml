@@ -1,9 +1,0 @@
-primary:
-  file: ./data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0000_HERE>.csv
-  account: <YOUR_ACCOUNT_0000_HERE>
-added:
-  - file: ./data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0001_HERE>.csv
-    account: <YOUR_ACCOUNT_0001_HERE>
-  - file: ./data/kiwoom-exported-transactions/latest-<YOUR_ACCOUNT_0002_HERE>.csv
-    account: <YOUR_ACCOUNT_0002_HERE>
-
