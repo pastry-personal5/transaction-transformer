@@ -80,6 +80,7 @@ class SimpleTransactionDBImpl(DBImplBase):
         sql_string = "SELECT amount, commission, open_date, open_price, symbol, transaction_type FROM simple_transactions"
         if len(where_clause_str) > 0:
             sql_string += " " + where_clause_str
+        sql_string += " " + "ORDER BY open_date"
         cur.execute(sql_string)
         for (
             amount,
