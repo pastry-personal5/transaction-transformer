@@ -29,31 +29,6 @@ class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
     def concat_and_cleanup_local_files_if_needed(self) -> bool:
         return super().concat_and_cleanup_local_files_if_needed()
 
-    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, List[SimpleTransaction]]:
-        # Implementation for Shinhan Securities
-        logger.info("Importing transactions for Shinhan...")
-        if not concatenated_file_meta or len(concatenated_file_meta) <= 0:
-            return (False, [])
-
-        index = 0
-        merged = []
-        for meta in concatenated_file_meta:
-            (transaction_filepath, account) = meta
-            transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
-            imported_list = self._get_list_of_simple_transactions_from_stream(
-                transaction_file, account
-            )
-            transaction_file.close()
-            if index == 0:
-                merged = imported_list.copy()
-            else:
-                merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, imported_list)
-            index += 1
-
-        logger.info(f"Total imported transactions: {len(merged)}")
-
-        return (True, merged)
-
     def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
         list_of_simple_transactions = []
         EXPECTED_COLUMN_LENGTH = 24

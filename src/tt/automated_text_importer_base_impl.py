@@ -7,6 +7,7 @@ from typing import Tuple
 from loguru import logger
 
 from tt.automated_text_importer_base import AutomatedTextImporterBase
+from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.simple_transaction import SimpleTransaction
 
 
@@ -15,14 +16,33 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
     def __init__(self):
         self.securities_firm_id = None
 
-    @abstractmethod
     def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, list[SimpleTransaction]]:
         """
-        Subclasses must implement this method to import transactions from the provided concatenated files.
+        Subclasses may override this method.
         """
-        pass
+        logger.info("Importing transactions...")
+        logger.info(f"{self.securities_firm_id}")
+        if not concatenated_file_meta or len(concatenated_file_meta) <= 0:
+            return (False, [])
 
-    # Implemented method
+        index = 0
+        merged = []
+        for meta in concatenated_file_meta:
+            (transaction_filepath, account) = meta
+            transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
+            imported_list = self._get_list_of_simple_transactions_from_stream(
+                transaction_file, account
+            )
+            transaction_file.close()
+            if index == 0:
+                merged = imported_list.copy()
+            else:
+                merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, imported_list)
+            index += 1
+
+        logger.info(f"Total imported transactions: {len(merged)}")
+        return (True, merged)
+
     def concat_and_cleanup_local_files_if_needed(self) -> tuple[bool, list[tuple[str, str]] | None]:
         """
         Concatenate local files if needed.
@@ -86,5 +106,11 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
     def _cleanup_files(self, concatenated_file_meta: list[tuple[str, str]]) -> None:
         """
         Subclasses may override this method to implement file cleanup logic.
+        """
+        pass
+
+    def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
+        """
+        Subclasses may override this method.
         """
         pass

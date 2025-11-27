@@ -71,6 +71,8 @@ class AutomatedTextImporterHelper():
         len_second = len(second)
         if len_second == 0:
             return first
+        if second[0].open_date < first[0].open_date:
+            return AutomatedTextImporterHelper.merge_simple_transactions(second, first)
         i = 0
         j = 0
         current_date = first[0].open_date
