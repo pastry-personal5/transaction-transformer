@@ -1,7 +1,7 @@
 [project]
 name = "transaction-transformer"
 version = "1.0.0"
-description = "Add your description here"
+description = "Transaction Transformer is a collection of converting tools with regards to financial transactions and portfolio holdings."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
