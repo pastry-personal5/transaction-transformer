@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import datetime
-import pprint
+import os
 
 from loguru import logger
 import sqlalchemy
@@ -168,7 +168,11 @@ class ExpenseTransactionControl:
         return list_to_return
 
     def _load_conversion_rule(self):
-        conversion_rule_file_path = "./config/conversion_rule.yaml"
+        from tt.constants import Constants
+        conversion_rule_file_path = os.path.join(
+            Constants.config_dir_path, "conversion_rule.yaml"
+        )
+
         try:
             fp = open(conversion_rule_file_path, "rb")
             conversion_rule = yaml.safe_load(fp)

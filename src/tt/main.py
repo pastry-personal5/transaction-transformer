@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 This module interprets command from a user, then do the job.
+It uses `click` package to build a command line interface.
 """
 
 import datetime
+import os
 import sys
 from typing import Optional
 import yaml
@@ -12,7 +14,7 @@ import yaml
 import click
 from loguru import logger
 
-import tt.log_control
+from tt.automated_text_importer import AutomatedTextImporterControl
 import tt.kiwoom_text_importer
 
 from tt.bank_salad_expense_transaction import BankSaladExpenseTransactionControl
@@ -26,7 +28,6 @@ from tt.simple_portfolio_control import SimplePortfolioControl
 from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
 from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
-from tt.stock_split import StockSplitControl
 from tt.bootstrap import BootstrapControl
 
 class GlobalObjectControl:
@@ -69,6 +70,20 @@ def database():
     global global_object_control
     bootstrap_control = BootstrapControl()
     bootstrap_control.bootstrap(global_object_control.global_db_connection)
+
+
+# <program> create auto
+@create.command()
+def auto():
+    """
+    Import all transactions using automated text importer.
+    """
+    global global_object_control
+
+    control = AutomatedTextImporterControl()
+    control.load_local_config()
+    control.import_all_transactions()
+
 
 
 # <program> create kiwoom-transaction
@@ -369,7 +384,8 @@ def lazy_init_global_objects(global_config_ir):
 
 def initialize_global_objects():
     global global_object_control
-    const_global_config_file_path = "./config/global_config.yaml"
+    from tt.constants import Constants
+    const_global_config_file_path = os.path.join(Constants.config_dir_path, "global_config.yaml")
     global_object_control.global_config_ir = build_global_config(
         const_global_config_file_path
     )

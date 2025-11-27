@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from loguru import logger
 import pandas
 import sqlalchemy
@@ -205,14 +207,15 @@ class StockSplitControl:
         """
         This method makes sure that stock split data is in the database.
         """
-        const_stock_splits_data_file_path = "./data/stock_splits.xlsx"
-        # Create a tablem if needed. When `create_table` returns `False`, ignore it.
+        from tt.constants import Constants
+        stock_splits_data_file_path = os.path.join(Constants.input_data_dir_path, "stock_splits.xlsx")
+        # Create a table if needed. When `create_table` returns `False`, ignore it.
         result = self.db_impl.create_table()
         if result:
             logger.info("A table about stock splits has been created.")
         list_read_from_db = self.db_impl.get_all()
         list_imported = self.importer.import_from_file(
-            const_stock_splits_data_file_path
+            stock_splits_data_file_path
         )
         list_to_be_appended = self._get_list_to_be_appended(
             list_read_from_db, list_imported

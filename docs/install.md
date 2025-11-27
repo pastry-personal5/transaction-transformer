@@ -1,4 +1,4 @@
-# Prerequisites
+## Prerequisites
 
 These are prerequisites for running and developing the project.
 
@@ -15,7 +15,7 @@ These are prerequisites for running and developing the project.
 * Chrome Web Browser
 
 
-## To develop
+### To develop
 
 * Chocolatey (Or choco in short, for Windows Platform)
 
@@ -35,11 +35,11 @@ These are prerequisites for running and developing the project.
     $ go install github.com/mrtazz/checkmake/cmd/checkmake@latest
     ```
 
-### Optional
+#### Optional
 
 * DBeaver (for Windows Platform)
 
-# Step-by-step Instruction
+## Step-by-step Instruction
 
 These are step-by-step instructions to set up and run the project.
 
@@ -47,7 +47,7 @@ These are step-by-step instructions to set up and run the project.
 
   * Create or modify the mask configuration file.
 
-    * The configuration file is located at `/config/mask.yaml`
+    * The configuration file is located at `/config/active/mask.yaml`
 
     * As of 2024-06-11, the configuration is like this below:
 
@@ -76,12 +76,12 @@ These are step-by-step instructions to set up and run the project.
 
   * As of 2024-06-11, it is a MariaDB instance.
 
-  * Create or modify the configuration file at `/config/mariadb_exporter.yaml`
+  * Create or modify the configuration file at `/config/active/mariadb_exporter.yaml`
 
 * Run
 
 ```bash
 $ python ./main.py \
---global_config ./config/global_config.yaml \
---kiwoom_config ./data/kiwoom.yaml
+--global_config ./config/active/global_config.yaml \
+--kiwoom_config ./data/active/kiwoom.yaml
 ```

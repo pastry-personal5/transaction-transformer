@@ -1,4 +1,5 @@
 import datetime
+import os
 from typing import Optional
 
 from loguru import logger
@@ -62,7 +63,8 @@ class SimplePortfolioControl:
 
     def do_investing_dot_com_portfolio_export(self, portfolio: SimplePortfolio) -> None:
         try:
-            output_file_path = "./data/investing_dot_com_portfolio.txt"
+            from tt.constants import Constants
+            output_file_path = os.path.join(Constants.output_data_dir_path, "investing_dot_com_portfolio.txt")
             f = open(output_file_path, "w", encoding="utf-8")
             tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(
                 f, portfolio
@@ -73,9 +75,10 @@ class SimplePortfolioControl:
             logger.error("The file path was: %s" % output_file_path)
 
     def do_yahoo_finance_web_export(self, portfolio):
-        config_file_path = "./config/yahoo.yaml"
+        from tt.constants import Constants
+        module_config_file_path = os.path.join(Constants.config_dir_path, "yahoo.yaml")
         yahoo_finance_web_exporter = YahooFinanceWebExporter()
-        if not yahoo_finance_web_exporter.read_config(config_file_path):
+        if not yahoo_finance_web_exporter.read_config(module_config_file_path):
             return False
         if not yahoo_finance_web_exporter.verify_config():
             return False
