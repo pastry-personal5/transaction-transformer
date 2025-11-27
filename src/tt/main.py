@@ -59,17 +59,44 @@ def create():
     """
     pass
 
+
 @cli.group()
 def bootstrap():
     """
     This command bootstraps.
     """
 
-@bootstrap.command()
-def database():
-    global global_object_control
-    bootstrap_control = BootstrapControl()
-    bootstrap_control.bootstrap(global_object_control.global_db_connection)
+
+@cli.group()
+def delete():
+    """
+    This command deletes an object.
+    """
+    pass
+
+
+@cli.group()
+def export():
+    """
+    This command exports data to an external service.
+    """
+    pass
+
+
+@cli.group()
+def get():
+    """
+    This command gets and displays data.
+    """
+    pass
+
+
+@cli.group()
+def show():
+    """
+    This command shows data.
+    """
+    pass
 
 
 # <program> create auto
@@ -81,9 +108,26 @@ def auto():
     global global_object_control
 
     control = AutomatedTextImporterControl()
-    control.load_local_config()
-    control.import_all_transactions()
+    control.load_module_config()
+    (result, list_of_simple_transactions) = control.import_all_transactions()
+    if not result or not list_of_simple_transactions:
+        sys.exit(-1)
 
+    global global_object_control
+    if not global_object_control.global_db_connection.is_in_valid_state():
+        logger.error("DB Connection is not valid. Please bootstrap first.")
+        sys.exit(-1)
+    db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
+    db_impl.export_all(list_of_simple_transactions)
+
+    simple_portfolio_control = SimplePortfolioControl(
+        global_object_control.fact_data_control
+    )
+    # @FIXME(dennis.oh) Instead of None, read portfolio snapshot date from config.
+    portfolio = simple_portfolio_control.build_portfolio(
+        list_of_simple_transactions, None
+    )
+    simple_portfolio_control.do_investing_dot_com_portfolio_export(portfolio)
 
 
 # <program> create kiwoom-transaction
@@ -219,12 +263,11 @@ def expense_category(file):
         logger.info("Failed.")
 
 
-@cli.group()
-def delete():
-    """
-    This command deletes an object.
-    """
-    pass
+@bootstrap.command()
+def database():
+    global global_object_control
+    bootstrap_control = BootstrapControl()
+    bootstrap_control.bootstrap(global_object_control.global_db_connection)
 
 
 # <program> delete bank-salad-expense-transaction
@@ -277,14 +320,6 @@ def expense_transaction():
         logger.info("Failed.")
 
 
-@cli.group()
-def export():
-    """
-    This command exports data to an external service.
-    """
-    pass
-
-
 # <program> export yahoo-finance
 @export.command()
 def yahoo_finance():
@@ -293,13 +328,6 @@ def yahoo_finance():
     # global global_object_control
     # control = SimplePortfolioControl(global_object_control.fact_data_control)
     # control.do_yahoo_finance_web_export(portfolio)
-
-
-@cli.group()
-def get():
-    """
-    This command gets and displays data.
-    """
     pass
 
 
@@ -352,6 +380,12 @@ def expense_category(user_identifier):
         list_of_expense_category = control.get_all()
         printer_impl = ExpenseCategoryTextPrinterImpl()
         printer_impl.print_all(list_of_expense_category)
+
+
+@show.command()
+def auto():
+    from tt.automated_text_importer import AutomatedTextImporterHelper
+    AutomatedTextImporterHelper.show_all_candidate_files()
 
 
 def build_global_config(global_config_file_path: str) -> dict:

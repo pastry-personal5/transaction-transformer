@@ -36,6 +36,7 @@
 
 import csv
 import datetime
+import os
 import re
 import sys
 from typing import Optional
@@ -45,8 +46,117 @@ import yaml
 from loguru import logger
 
 
+from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
 from tt.malformed_date_error import MalformedDateError
 from tt.simple_transaction import SimpleTransaction
+
+
+def get_correct_line_for_pattern_0000(
+    prefix: str, postfix: str, match_object: re.Match
+) -> str:
+
+    to_insert = (
+        match_object.group(1)
+        + ","
+        + '"'
+        + match_object.group(2)
+        + '"'
+        + ","
+        + match_object.group(3)
+    )
+    new_line = prefix + to_insert + postfix
+    return new_line
+
+
+def get_correct_line_for_pattern_0001(
+    prefix: str, postfix: str, match_object: re.Match
+) -> str:
+
+    to_insert = (
+        match_object.group(1)
+        + ","
+        + '"'
+        + match_object.group(2)
+        + '"'
+        + ","
+        + '"'
+        + match_object.group(3)
+        + '"'
+    )
+    new_line = prefix + to_insert + postfix
+    return new_line
+
+
+# "abcd", defg, "hijk"
+def get_corrected_line_for_pattern_0000(line: str, match_object: re.Match) -> str:
+    span = match_object.span()
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
+
+    return get_correct_line_for_pattern_0000(prefix, postfix, match_object)
+
+
+# "abcd", defg, hijk
+def get_corrected_line_for_pattern_0001(line: str, match_object: re.Match) -> str:
+    span = match_object.span()
+    prefix = line[0:span[0]]  # Ends with ','
+    postfix = line[span[1]:]  # Starts with data of a column
+
+    # It's a heuristic to find a normal case.
+    group3 = match_object.group(3)
+
+    # If `group3` was not there before the match...
+    if group3 not in prefix:
+        logger.info(
+            "Skipping correction. Even with suspected abnormality/malformed data."
+        )
+        return line  # Return an un-modified.
+    # If `group3` is just "000"...
+    if group3 == "000":
+        logger.info(
+            "Skipping correction. Even with suspected abnormality/malformed data."
+        )
+        return line  # Return an un-modified.
+
+    return get_correct_line_for_pattern_0001(prefix, postfix, match_object)
+
+
+def cleanup_with_filepath(filepath):
+    # Read
+    f = open(filepath, "r", encoding="cp949")
+    lines = f.readlines()
+    f.close()
+
+    lines_read = len(lines)
+    logger.info(f"Lines read: ({lines_read})")
+
+    # Write
+    f = open(filepath, "w", encoding="cp949")
+    pattern_0000 = re.compile(r"(\"[0-9,\.]+\"),(1,000),(\"[0-9,\.]+\")")
+    pattern_0001 = re.compile(r"(\"[0-9,\.]+\"),(1,000),([0-9\.]+)")
+    count_matched = 0
+    for line in lines:
+        match_object_0000 = re.search(pattern_0000, line)
+        match_object_0001 = re.search(pattern_0001, line)
+        if match_object_0000:
+            count_matched += 1
+            logger.info("Problematic line:")
+            logger.info(line)
+            line = get_corrected_line_for_pattern_0000(line, match_object_0000)
+            logger.info("Fixed line:")
+            logger.info(line)
+        elif match_object_0001:
+            count_matched += 1
+            logger.info("Problematic line:")
+            logger.info(line)
+            line = get_corrected_line_for_pattern_0001(line, match_object_0001)
+            logger.info("Fixed line:")
+            logger.info(line)
+        f.write(line)
+
+    f.close()
+
+    logger.info(f"The count of matched lines: ({count_matched})")
 
 
 def convert_kr_date_string_to_date(src):
@@ -289,3 +399,41 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     )
 
     return list_of_simple_transactions
+
+
+class KiwoomTextImporter(AutomatedTextImporterBaseImpl):
+
+    def __init__(self):
+        super().__init__()
+        self.securities_firm_id = "kiwoom" # securities firm id
+
+    def import_transactions(self, concatenated_file_meta: tuple[str, str]) -> (bool, list[SimpleTransaction]):
+        # Implementation for Kiwoom
+        logger.info("Importing transactions for Kiwoom...")
+        if not concatenated_file_meta or len(concatenated_file_meta) <= 0:
+            return (False, [])
+
+        index = 0
+        merged = []
+        for meta in concatenated_file_meta:
+            (transaction_filepath, account) = meta
+            transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
+            imported_list = get_list_of_simple_transactions_from_stream(
+                transaction_file, account
+            )
+            transaction_file.close()
+            if index == 0:
+                merged = imported_list.copy()
+            else:
+                merged = merge_simple_transactions(merged, imported_list)
+            index += 1
+
+        logger.info(f"Total imported transactions: {len(merged)}")
+
+        return (True, merged)
+
+    def _cleanup_files(self, concatenated_file_meta: tuple[str, str]) -> None:
+        # Implementation for Kiwoom
+        for (filepath, account) in concatenated_file_meta:
+            logger.info(f"Cleaning up file: {os.path.basename(filepath)}")
+            cleanup_with_filepath(filepath)
