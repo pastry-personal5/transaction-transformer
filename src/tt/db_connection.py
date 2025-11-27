@@ -1,11 +1,11 @@
-from enum import Flag
 import logging
 import sys
+from enum import Flag
 from urllib.parse import quote
 
-from loguru import logger
 import mariadb
 import sqlalchemy
+from loguru import logger
 from sqlalchemy.engine.url import URL
 
 import tt.log_control

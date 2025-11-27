@@ -9,26 +9,28 @@ import datetime
 import os
 import sys
 from typing import Optional
-import yaml
 
 import click
+import yaml
 from loguru import logger
 
-from tt.automated_text_importer import AutomatedTextImporterControl
 import tt.kiwoom_text_importer
-
-from tt.bank_salad_expense_transaction import BankSaladExpenseTransactionControl
+from tt.automated_text_importer import AutomatedTextImporterControl
+from tt.bank_salad_expense_transaction import \
+    BankSaladExpenseTransactionControl
+from tt.bootstrap import BootstrapControl
+from tt.db_connection import DBConnection
+from tt.expense_category import (ExpenseCategoryControl,
+                                 ExpenseCategoryTextPrinterImpl)
 from tt.expense_transaction import ExpenseTransactionControl
 from tt.fact_data_control import FactDataControl
-from tt.db_connection import DBConnection
-from tt.expense_category import ExpenseCategoryControl
-from tt.expense_category import ExpenseCategoryTextPrinterImpl
 from tt.simple_portfolio import SimplePortfolio
 from tt.simple_portfolio_control import SimplePortfolioControl
 from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
-from tt.simple_transaction_text_printer_impl import SimpleTransactionTextPrinterImpl
-from tt.bootstrap import BootstrapControl
+from tt.simple_transaction_text_printer_impl import \
+    SimpleTransactionTextPrinterImpl
+
 
 class GlobalObjectControl:
 

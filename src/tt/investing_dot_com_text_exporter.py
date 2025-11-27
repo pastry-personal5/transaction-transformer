@@ -1,9 +1,7 @@
 import csv
 import datetime
 
-
 from loguru import logger
-
 
 from tt.simple_portfolio import SimplePortfolio
 

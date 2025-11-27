@@ -39,9 +39,9 @@ import datetime
 import os
 import re
 import sys
-from typing import Tuple, List
-import yaml
+from typing import List, Tuple
 
+import yaml
 from loguru import logger
 
 from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl

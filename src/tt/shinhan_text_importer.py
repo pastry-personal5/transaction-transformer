@@ -10,15 +10,16 @@ The exported file is expected to be in CSV format with euc-kr encoding.
 # 주문일자,매매구분,구분,종목코드,종목명,주문수량,주문단가,체결수량,체결단가,상태,거래금액,수수료,주문유형,주문번호,원주문,주문시간,GMT주문시간,체결시간,GMT체결시간,국가구분,시장구분,기준통화,주문자,신용대출일자
 
 import csv
-from datetime import date, datetime
 import sys
-from typing import Tuple, List
+from datetime import date, datetime
+from typing import List, Tuple
 
 from loguru import logger
 
 from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.simple_transaction import SimpleTransaction
+
 
 class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
 

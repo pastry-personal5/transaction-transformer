@@ -1,8 +1,8 @@
 import datetime
 import sys
 
-from loguru import logger
 import sqlalchemy
+from loguru import logger
 from sqlalchemy.orm import sessionmaker
 
 from tt.db_connection import DBConnection

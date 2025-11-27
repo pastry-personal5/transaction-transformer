@@ -5,7 +5,6 @@ from typing import Optional
 from loguru import logger
 
 import tt.investing_dot_com_text_exporter
-
 from tt.fact_data_control import FactDataControl
 from tt.simple_portfolio import SimplePortfolio
 from tt.simple_transaction import SimpleTransaction

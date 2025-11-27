@@ -1,13 +1,13 @@
 import pprint
-from typing import Tuple, List
+from typing import List, Tuple
 
 from loguru import logger
 
+from tt.automated_text_importer_base import AutomatedTextImporterBase
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
+from tt.kiwoom_text_importer import KiwoomTextImporter
 from tt.meritz_text_importer import MeritzTextImporter
 from tt.shinhan_text_importer import ShinhanTextImporter
-from tt.automated_text_importer_base import AutomatedTextImporterBase
-from tt.kiwoom_text_importer import KiwoomTextImporter
 from tt.simple_transaction import SimpleTransaction
 
 

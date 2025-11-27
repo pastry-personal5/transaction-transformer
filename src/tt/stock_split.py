@@ -2,16 +2,15 @@
 
 import os
 
-from loguru import logger
 import pandas
 import sqlalchemy
+from loguru import logger
 from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 
 from tt.db_connection import DBConnection
 from tt.db_impl_base import DBImplBase
-
 
 Base = declarative_base()  # An sqlalchemy's base class.
 

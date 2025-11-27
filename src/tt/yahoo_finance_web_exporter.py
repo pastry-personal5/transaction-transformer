@@ -1,10 +1,9 @@
 import time
-import yaml
-
-from loguru import logger
 
 import requests
 import selenium
+import yaml
+from loguru import logger
 from selenium import common as SC
 from selenium import webdriver
 from selenium.webdriver.common.by import By

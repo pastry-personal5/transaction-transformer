@@ -2,19 +2,16 @@
 import datetime
 import os
 
-from loguru import logger
 import sqlalchemy
+import yaml
+from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-import yaml
 
 from tt.bank_salad_expense_transaction import (
-    BankSaladExpenseTransaction,
-    BankSaladExpenseTransactionDBImpl,
-)
+    BankSaladExpenseTransaction, BankSaladExpenseTransactionDBImpl)
 from tt.db_connection import DBConnection
 from tt.db_impl_base import DBImplBase
-
 
 Base = declarative_base()  # An sqlalchemy's base class.
 

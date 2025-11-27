@@ -1,9 +1,9 @@
 import pprint
 import random
-import yaml
 
-from loguru import logger
 import mariadb
+import yaml
+from loguru import logger
 
 from tt.db_connection import DBConnection
 from tt.db_impl_base import DBImplBase

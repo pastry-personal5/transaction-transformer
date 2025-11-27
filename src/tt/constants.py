@@ -1,5 +1,6 @@
 import os
 
+
 class Constants:
     """A class to hold constant values for the application."""
 

@@ -45,10 +45,10 @@ As of 2025-11-27, it supports only overseas stock transactions.
 # "미상환대출연체료"
 
 import csv
-from datetime import date, datetime
 import re
 import sys
-from typing import Tuple, List
+from datetime import date, datetime
+from typing import List, Tuple
 
 from loguru import logger
 

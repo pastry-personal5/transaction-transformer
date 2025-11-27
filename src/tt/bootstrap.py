@@ -1,5 +1,6 @@
-from loguru import logger
 import mariadb
+from loguru import logger
+
 
 class BootstrapControl:
 

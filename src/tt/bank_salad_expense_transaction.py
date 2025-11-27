@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import datetime
 
-from loguru import logger
-from pandas import DataFrame
 import pandas
 import sqlalchemy
+from loguru import logger
+from pandas import DataFrame
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 

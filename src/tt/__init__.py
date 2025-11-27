@@ -1,14 +1,10 @@
 from .bank_salad_expense_transaction import (
-    BankSaladExpenseTransactionImporter,
-    BankSaladExpenseTransaction,
-)
+    BankSaladExpenseTransaction, BankSaladExpenseTransactionImporter)
 from .db_connection import DBConnection
 from .db_impl_base import DBImplBase
-from .expense_transaction import (
-    ExpenseTransactionControl,
-    ExpenseTransaction,
-    ExpenseTransactionDBImpl,
-)
+from .expense_transaction import (ExpenseTransaction,
+                                  ExpenseTransactionControl,
+                                  ExpenseTransactionDBImpl)
 from .malformed_date_error import MalformedDateError
 from .simple_portfolio import SimplePortfolio
 from .simple_transaction import SimpleTransaction
