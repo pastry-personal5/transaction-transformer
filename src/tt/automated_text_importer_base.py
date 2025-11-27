@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple
 
 from tt.simple_transaction import SimpleTransaction
 
@@ -13,5 +14,5 @@ class AutomatedTextImporterBase(ABC):
         pass
 
     @abstractmethod
-    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> (bool, list[SimpleTransaction]):
-        pass
+    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, List[SimpleTransaction]]:
+        return (False, [])

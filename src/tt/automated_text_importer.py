@@ -1,68 +1,14 @@
-import os
-from pathlib import Path
 import pprint
-import sys
 from typing import Tuple, List
 
 from loguru import logger
-import yaml
 
+from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.meritz_text_importer import MeritzTextImporter
 from tt.shinhan_text_importer import ShinhanTextImporter
 from tt.automated_text_importer_base import AutomatedTextImporterBase
 from tt.kiwoom_text_importer import KiwoomTextImporter
 from tt.simple_transaction import SimpleTransaction
-
-
-class AutomatedTextImporterHelper():
-
-    @staticmethod
-    def show_all_candidate_files() -> None:
-        from tt.constants import Constants
-        input_data_dir_path = Constants.input_data_dir_path
-        module_config = AutomatedTextImporterHelper.load_module_config()
-        securities_firm_ids = module_config.get("securities_firm_id", [])
-        for securities_firm_id in securities_firm_ids:
-            input_data_directory_path = os.path.join(input_data_dir_path, f"{securities_firm_id}-exported-transactions")
-            logger.info(f"Checking for {securities_firm_id} transaction candidate files in: {input_data_directory_path}")
-            for path in Path(input_data_directory_path).glob("*.csv"):
-                logger.info(f"Found {securities_firm_id} transaction candidate file: {path} as {os.path.basename(path)}")
-                input_file = open(path, newline="", encoding="euc-kr")
-
-                sys.stdout.buffer.write((f"{os.path.basename(path)}").encode("utf-8"))
-                sys.stdout.buffer.write(("\n").encode("utf-8"))
-                for line in input_file.readlines():
-                    sys.stdout.buffer.write(line.strip().encode("utf-8"))
-                    sys.stdout.buffer.write(("\n").encode("utf-8"))
-                sys.stdout.buffer.write(("---\n").encode("utf-8"))
-
-                input_file.close()
-
-    @staticmethod
-    def load_module_config() -> dict:
-        module_config_file_name = "automated_text_importer_config.yaml"
-        from tt.constants import Constants
-        config_dir_path = Constants.config_dir_path
-        module_config_file_path = os.path.join(config_dir_path, module_config_file_name)
-        if not os.path.exists(module_config_file_path):
-            logger.error(f"The automated text importer configuration file does not exist: {module_config_file_path}")
-            sys.exit(-1)
-        return AutomatedTextImporterHelper.read_yaml_based_config(module_config_file_path)
-
-    @staticmethod
-    def read_yaml_based_config(config_file_path: str) -> dict:
-        config_to_return = {}
-        try:
-            config_file = open(config_file_path, "rb")
-            config = yaml.safe_load(config_file)
-            if config is not None:
-                config_to_return = config.copy()
-            config_file.close()
-        except IOError as e:
-            logger.error(f"IOError: {e}")
-            logger.error("A configuration file path was: %s" % config_file_path)
-            return None
-        return config_to_return
 
 
 class AutomatedTextImporterFactory:
@@ -106,18 +52,19 @@ class AutomatedTextImporterControl:
             if importer is None:
                 logger.warning(f"Failed to create importer for id: {securities_firm_id}")
                 continue
-            try:
-                (result, concatenated_file_meta) = importer.concat_and_cleanup_local_files_if_needed()
-                if result and concatenated_file_meta:
-                    (result, list_of_simple_transactions) = importer.import_transactions(concatenated_file_meta)
-                    if result:
-                        logger.info(f"Successfully imported transactions for {securities_firm_id}")
-                        # @FIXME(dennis.oh) Merge all transactions from different securities firms.
-                        return (result, list_of_simple_transactions)
+
+            (result, concatenated_file_meta) = importer.concat_and_cleanup_local_files_if_needed()
+            if result and concatenated_file_meta:
+                (result, list_of_simple_transactions) = importer.import_transactions(concatenated_file_meta)
+                if result:
+                    logger.info(f"Successfully imported transactions for {securities_firm_id}")
+                    if index == 0:
+                        merged = list_of_simple_transactions.copy()
                     else:
-                        logger.error(f"Failed to import transactions for {securities_firm_id}")
-            except Exception as e:
-                logger.error(f"Error importing transactions for {securities_firm_id}: {e}")
-                continue
+                        merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, list_of_simple_transactions)
+                    logger.info(f"Total imported transactions so far: {len(merged)}")
+                else:
+                    logger.error(f"Failed to import transactions for {securities_firm_id}")
+
             index += 1
         return (True, merged)

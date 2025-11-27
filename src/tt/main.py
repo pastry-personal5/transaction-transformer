@@ -384,7 +384,7 @@ def expense_category(user_identifier):
 
 @show.command()
 def auto():
-    from tt.automated_text_importer import AutomatedTextImporterHelper
+    from tt.automated_text_importer_helper import AutomatedTextImporterHelper
     AutomatedTextImporterHelper.show_all_candidate_files()
 
 

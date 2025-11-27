@@ -39,14 +39,13 @@ import datetime
 import os
 import re
 import sys
-from typing import Optional
+from typing import Tuple, List
 import yaml
-
 
 from loguru import logger
 
-
 from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
+from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.malformed_date_error import MalformedDateError
 from tt.simple_transaction import SimpleTransaction
 
@@ -170,72 +169,6 @@ def convert_kr_date_string_to_date(src):
     return datetime.date(year=yyyy, month=mm, day=dd)
 
 
-def append_transactions_of_current_date(
-    list_of_simple_transactions: list, transactions_of_current_date: list
-):
-    for t in transactions_of_current_date:
-        if (
-            t.transaction_type
-            == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
-        ):
-            list_of_simple_transactions.append(t)
-    for t in transactions_of_current_date:
-        if (
-            t.transaction_type
-            == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
-        ):
-            list_of_simple_transactions.append(t)
-    for t in transactions_of_current_date:
-        if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY:
-            list_of_simple_transactions.append(t)
-    for t in transactions_of_current_date:
-        if (
-            t.transaction_type
-            == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
-        ):
-            list_of_simple_transactions.append(t)
-    for t in transactions_of_current_date:
-        if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL:
-            list_of_simple_transactions.append(t)
-
-
-# This function merges two lists of |SimpleTransactions| objects. It's based on date-by-date iteration.
-# Note: Performance-wise, this function can be improved a lot.
-def merge_simple_transactions(
-    first: list[SimpleTransaction], second: list[SimpleTransaction]
-) -> list[SimpleTransaction]:
-    merged = []
-    len_first = len(first)
-    len_second = len(second)
-    if len_second == 0:
-        return first
-    i = 0
-    j = 0
-    current_date = first[0].open_date
-    transactions_of_current_date = None
-    ending_date = datetime.date.today()
-    while current_date <= ending_date:
-        transactions_of_current_date = []
-        while i < len_first:
-            f = first[i]
-            f_date = f.open_date
-            if f_date > current_date:
-                break
-            transactions_of_current_date.append(f)
-            i += 1
-        while j < len_second:
-            s = second[j]
-            s_date = s.open_date
-            if s_date > current_date:
-                break
-            transactions_of_current_date.append(s)
-            j += 1
-        append_transactions_of_current_date(merged, transactions_of_current_date)
-        current_date += datetime.timedelta(days=1)
-
-    return merged
-
-
 def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransaction]:
     try:
         config_file = open(config_filepath, "rb")
@@ -270,7 +203,7 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
                     added_transaction_file, account
                 )
                 logger.info(f"Length of added was ({len(added_transactions)})")
-                merged = merge_simple_transactions(merged, added_transactions)
+                merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, added_transactions)
                 logger.info(f"Length of merged was ({len(merged)})")
                 added_transaction_file.close()
             except IOError as e:
@@ -337,7 +270,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
             current_date = open_date
         elif current_date != open_date:
             # Not the same day
-            append_transactions_of_current_date(
+            AutomatedTextImporterHelper.append_transactions_of_current_date(
                 list_of_simple_transactions, transactions_of_current_date
             )
             transactions_of_current_date = []
@@ -394,7 +327,7 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
         transactions_of_current_date.append(transaction)
 
     # Do this once at the last
-    append_transactions_of_current_date(
+    AutomatedTextImporterHelper.append_transactions_of_current_date(
         list_of_simple_transactions, transactions_of_current_date
     )
 
@@ -407,7 +340,7 @@ class KiwoomTextImporter(AutomatedTextImporterBaseImpl):
         super().__init__()
         self.securities_firm_id = "kiwoom" # securities firm id
 
-    def import_transactions(self, concatenated_file_meta: tuple[str, str]) -> (bool, list[SimpleTransaction]):
+    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, List[SimpleTransaction]]:
         # Implementation for Kiwoom
         logger.info("Importing transactions for Kiwoom...")
         if not concatenated_file_meta or len(concatenated_file_meta) <= 0:
@@ -425,7 +358,7 @@ class KiwoomTextImporter(AutomatedTextImporterBaseImpl):
             if index == 0:
                 merged = imported_list.copy()
             else:
-                merged = merge_simple_transactions(merged, imported_list)
+                merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, imported_list)
             index += 1
 
         logger.info(f"Total imported transactions: {len(merged)}")

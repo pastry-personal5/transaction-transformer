@@ -1,9 +1,10 @@
-from loguru import logger
-
-import os
-import re
 from abc import abstractmethod
+import os
 from pathlib import Path
+import re
+from typing import Tuple
+
+from loguru import logger
 
 from tt.automated_text_importer_base import AutomatedTextImporterBase
 from tt.simple_transaction import SimpleTransaction
@@ -12,18 +13,27 @@ from tt.simple_transaction import SimpleTransaction
 class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
 
     def __init__(self):
-        pass
+        self.securities_firm_id = None
 
     @abstractmethod
-    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> (bool, list[SimpleTransaction]):
+    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, list[SimpleTransaction]]:
+        """
+        Subclasses must implement this method to import transactions from the provided concatenated files.
+        """
         pass
 
     # Implemented method
     def concat_and_cleanup_local_files_if_needed(self) -> tuple[bool, list[tuple[str, str]] | None]:
+        """
+        Concatenate local files if needed.
+        Do the cleansing on input data, if needed.
+        """
         concatenated_file_meta = self._concat_files_if_needed()
         if concatenated_file_meta:
             self._cleanup_files(concatenated_file_meta)
-        return (True, concatenated_file_meta)
+            return (True, concatenated_file_meta)
+        else:
+            return (False, None)
 
     def _build_input_data_directory_path(self, securities_firm_id: str) -> str:
         from tt.constants import Constants
@@ -72,3 +82,9 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
             logger.info(f"Created concatenated file: {os.path.basename(concatenated_file_path)}")
             concatenated_file_meta.append((concatenated_file_path, account))
         return concatenated_file_meta
+
+    def _cleanup_files(self, concatenated_file_meta: list[tuple[str, str]]) -> None:
+        """
+        Subclasses may override this method to implement file cleanup logic.
+        """
+        pass
