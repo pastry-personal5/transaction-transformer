@@ -2,7 +2,7 @@ import os
 import re
 from abc import abstractmethod
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 from loguru import logger
 
@@ -27,13 +27,21 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
 
         index = 0
         merged = []
+
         for meta in concatenated_file_meta:
             (transaction_filepath, account) = meta
-            transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
-            imported_list = self._get_list_of_simple_transactions_from_stream(
-                transaction_file, account
-            )
-            transaction_file.close()
+            transaction_file = None
+            try:
+                transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
+                imported_list = self._get_list_of_simple_transactions_from_stream(
+                    transaction_file, account
+                )
+            except OSError as e:
+                logger.error(f"Failed to open transaction file: {transaction_filepath}, error: {e}")
+                return (False, [])
+            finally:
+                if transaction_file is not None:
+                    transaction_file.close()
             if index == 0:
                 merged = imported_list.copy()
             else:
@@ -48,6 +56,9 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
         Concatenate local files if needed.
         Do the cleansing on input data, if needed.
         """
+        if self.securities_firm_id is None:
+            logger.error("securities_firm_id is not set.")
+            return (False, None)
         concatenated_file_meta = self._concat_files_if_needed()
         if concatenated_file_meta:
             self._cleanup_files(concatenated_file_meta)
@@ -61,9 +72,12 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
         input_data_directory_path = os.path.join(input_data_dir_path, f"{securities_firm_id}-exported-transactions")
         return input_data_directory_path
 
-    def _concat_files_if_needed(self) -> None:
+    def _concat_files_if_needed(self) -> List[Tuple[str, str]] | None:
         input_data_dir_path = self._build_input_data_directory_path(self.securities_firm_id)
         logger.info(f"Checking for transaction candidate files in: {input_data_dir_path}")
+        if not os.path.exists(input_data_dir_path):
+            logger.error(f"Input data directory does not exist: {input_data_dir_path}")
+            return None
         files = []
         for path in Path(input_data_dir_path).glob("year-*.csv"):
             logger.info(f"Found transaction candidate file: {path}")
@@ -86,7 +100,8 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
                 if f"-{account}." in name:
                     account_and_file_map[account].append(name)
         concatenated_file_meta = []
-        for account in account_set:
+        sorted_account_list = sorted(account_set)
+        for account in sorted_account_list:
             concatenated_file_path = os.path.join(input_data_dir_path, f"latest-{account}.csv")
             with open(concatenated_file_path, "w", encoding="euc-kr") as concatenated_file:
                 for name in account_and_file_map[account]:
