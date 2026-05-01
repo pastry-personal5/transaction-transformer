@@ -48,6 +48,7 @@ from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.malformed_date_error import MalformedDateError
 from tt.simple_transaction import SimpleTransaction
+from tt.symbol_config import SymbolConfig
 
 
 def get_correct_line_for_pattern_0000(
@@ -169,7 +170,7 @@ def convert_kr_date_string_to_date(src):
     return datetime.date(year=yyyy, month=mm, day=dd)
 
 
-def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransaction]:
+def build_list_of_simple_transactions(config_filepath: str, symbol_config: SymbolConfig) -> list[SimpleTransaction]:
     try:
         config_file = open(config_filepath, "rb")
         config = yaml.safe_load(config_file)
@@ -180,7 +181,7 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
             logger.info(f"Reading ({transaction_filepath}) ...")
             transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
             primary_list = get_list_of_simple_transactions_from_stream(
-                transaction_file, account
+                transaction_file, account, symbol_config
             )
             transaction_file.close()
         except IOError as e:
@@ -200,7 +201,7 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
                     added_transaction_filepath, newline="", encoding="euc-kr"
                 )
                 added_transactions = get_list_of_simple_transactions_from_stream(
-                    added_transaction_file, account
+                    added_transaction_file, account, symbol_config
                 )
                 logger.info(f"Length of added was ({len(added_transactions)})")
                 merged = AutomatedTextImporterHelper.merge_simple_transactions(merged, added_transactions)
@@ -223,7 +224,7 @@ def build_list_of_simple_transactions(config_filepath: str) -> list[SimpleTransa
 # Because of that, a heuristic has been implemented. That means:
 # To ensure that 'BUY' transactions are listed before 'SELL' transaction(s) on the same day,
 # additional logic is implemented. See |append_transactions_of_current_date| for details.
-def get_list_of_simple_transactions_from_stream(input_stream, account):
+def get_list_of_simple_transactions_from_stream(input_stream, account, symbol_config: SymbolConfig) -> list[SimpleTransaction]:
     list_of_simple_transactions = []
     EXPECTED_COLUMN_LENGTH = 27
     STRING_FOR_TYPE_BUY = "매수"
@@ -233,6 +234,8 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
     # STRING_FOR_TYPE_STOCK_INSERTION = '대체입고'
     # STRING_FOR_TYPE_STOCK_DELETION = '대체출고'
     STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = "이벤트입고"
+    STRING_FOR_TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM = "타사대체입고"
+    STRING_FOR_TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM = "타사대체출고"
     reader = csv.reader(input_stream, delimiter=",")
     # FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
     num_row_read = 0
@@ -284,18 +287,6 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
 
         transaction = SimpleTransaction()
 
-        transaction.account = account
-        transaction.open_date = open_date
-
-        transaction.symbol = input_row[1]
-        transaction.amount = float(input_row[7].replace(",", ""))
-        transaction.open_price = float(input_row[8].replace(",", ""))
-
-        pure_commission = input_row[16]
-        tax = input_row[17]
-        total_commission = float(pure_commission) + float(tax)
-        transaction.commission = float("%.2f" % total_commission)
-
         input_row[4] = input_row[4].strip()
 
         if input_row[4] == STRING_FOR_TYPE_SELL:
@@ -318,11 +309,41 @@ def get_list_of_simple_transactions_from_stream(input_stream, account):
             transaction.transaction_type = (
                 SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
             )
+        elif input_row[4] == STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
+            transaction.transaction_type = (
+                SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
+            )
+        elif input_row[4] == STRING_FOR_TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM:
+            transaction.transaction_type = (
+                SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM
+            )
+        elif input_row[4] == STRING_FOR_TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM:
+            transaction.transaction_type = (
+                SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM
+            )
         else:
             # Continue with the for loop, It means the other transaction except types above.
             # i.e. Dividend
             # i.e. A header line
             continue
+
+        transaction.account = account
+        transaction.open_date = open_date
+
+        original_namespace = "kiwoom"
+        raw_symbol_input = input_row[1]
+        (legit_namespace, legit_symbol) = symbol_config.get_namespace_and_symbol_by_raw_input(original_namespace, raw_symbol_input)
+        transaction.namespace = legit_namespace
+        transaction.symbol = legit_symbol
+
+        transaction.amount = float(input_row[7].replace(",", ""))
+        transaction.open_price = float(input_row[8].replace(",", ""))
+
+        pure_commission = input_row[16]
+        tax = input_row[17]
+        total_commission = float(pure_commission) + float(tax)
+        transaction.commission = float("%.2f" % total_commission)
+
 
         transactions_of_current_date.append(transaction)
 
@@ -340,7 +361,7 @@ class KiwoomTextImporter(AutomatedTextImporterBaseImpl):
         super().__init__()
         self.securities_firm_id = "kiwoom" # securities firm id
 
-    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, List[SimpleTransaction]]:
+    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]], symbol_config: SymbolConfig) -> Tuple[bool, List[SimpleTransaction]]:
         # Implementation for Kiwoom
         logger.info("Importing transactions for Kiwoom...")
         if not concatenated_file_meta or len(concatenated_file_meta) <= 0:
@@ -352,7 +373,7 @@ class KiwoomTextImporter(AutomatedTextImporterBaseImpl):
             (transaction_filepath, account) = meta
             transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
             imported_list = get_list_of_simple_transactions_from_stream(
-                transaction_file, account
+                transaction_file, account, symbol_config
             )
             transaction_file.close()
             if index == 0:

@@ -16,6 +16,7 @@ from typing import List, Tuple
 
 from loguru import logger
 
+from tt import symbol_config
 from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.simple_transaction import SimpleTransaction
@@ -30,7 +31,7 @@ class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
     def concat_and_cleanup_local_files_if_needed(self) -> bool:
         return super().concat_and_cleanup_local_files_if_needed()
 
-    def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
+    def _get_list_of_simple_transactions_from_stream(self, input_stream, account, symbol_config: symbol_config.SymbolConfig) -> list[SimpleTransaction]:
         list_of_simple_transactions = []
         EXPECTED_COLUMN_LENGTH = 24
         STRING_FOR_TYPE_BUY = "매수"
@@ -91,18 +92,6 @@ class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
 
             transaction = SimpleTransaction()
 
-            transaction.account = account
-            transaction.open_date = open_date
-
-            transaction.symbol = self._get_transaction_symbol_from_input_row(input_row)
-            transaction.amount = float(input_row[7].replace(",", ""))
-            transaction.open_price = float(input_row[8].replace(",", ""))
-
-            pure_commission = input_row[11]
-            tax = 0.0  # Shinhan does not provide tax info separately.
-            total_commission = float(pure_commission) + float(tax)
-            transaction.commission = float("%.2f" % total_commission)
-
             transaction_type = input_row[1].strip()
 
             if transaction_type == STRING_FOR_TYPE_SELL:
@@ -131,6 +120,26 @@ class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
                 # i.e. A header line
                 continue
 
+            transaction.account = account
+            transaction.open_date = open_date
+
+            CONST_SYMBOL_COLUMN = 3
+            raw_symbol_input = input_row[CONST_SYMBOL_COLUMN].strip()
+            original_namespace = self.securities_firm_id
+            (legit_namespace, legit_symbol) = symbol_config.get_namespace_and_symbol_by_raw_input(original_namespace, raw_symbol_input)
+            transaction.namespace = legit_namespace
+            transaction.symbol = legit_symbol
+
+            transaction.amount = float(input_row[7].replace(",", ""))
+            transaction.open_price = float(input_row[8].replace(",", ""))
+
+            pure_commission = input_row[11]
+            tax = 0.0  # Shinhan does not provide tax info separately.
+            total_commission = float(pure_commission) + float(tax)
+            transaction.commission = float("%.2f" % total_commission)
+
+
+
             transactions_of_current_date.append(transaction)
 
         # Do this once at the last
@@ -140,15 +149,3 @@ class ShinhanTextImporter(AutomatedTextImporterBaseImpl):
             )
 
         return list_of_simple_transactions
-
-    def _get_transaction_symbol_from_input_row(self, input_row) -> str:
-        """
-        Get the transaction symbol from the input row.
-        Args:
-            input_row: A list of strings representing a row from the input CSV.
-        Returns:
-            The transaction symbol as a string.
-        """
-        # For Shinhan, we will use the "종목코드" (index 3) as the symbol.
-        raw_symbol = input_row[3].strip()
-        return raw_symbol

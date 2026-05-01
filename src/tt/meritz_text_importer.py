@@ -91,6 +91,7 @@ from typing import List, Tuple
 
 from loguru import logger
 
+from tt import symbol_config
 from tt.automated_text_importer_base_impl import AutomatedTextImporterBaseImpl
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.simple_transaction import SimpleTransaction
@@ -107,23 +108,35 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
 
     def _is_transaction_type_buy(self, transaction_type: str) -> bool:
         STRING_FOR_TYPE_BUY = "해외주식매수"
-        return transaction_type == STRING_FOR_TYPE_BUY
+        STRING_FOR_TYPE_BUY_ALT_0000 = "해외주식 매수"
+        return transaction_type in [STRING_FOR_TYPE_BUY, STRING_FOR_TYPE_BUY_ALT_0000]
 
     def _is_transaction_type_sell(self, transaction_type: str) -> bool:
         STRING_FOR_TYPE_SELL = "해외주식매도"
-        return transaction_type == STRING_FOR_TYPE_SELL
+        STRING_FOR_TYPE_SELL_ALT_0000 = "해외주식 매도"
+        return transaction_type in [STRING_FOR_TYPE_SELL, STRING_FOR_TYPE_SELL_ALT_0000]
 
-    def _is_transaction_type_stock_insertion(self, transaction_type: str) -> bool:
-        STRING_FOR_TYPE_STOCK_INSERTION = "대체입고"
+    def _is_transaction_type_stock_insertion_from_other_securities_firm(self, transaction_type: str) -> bool:
         STRING_FOR_TYPE_STOCK_INSERTION_FROM_OTHER_SECURITIES_FIRM = "타사대체입고"
-        return transaction_type in [STRING_FOR_TYPE_STOCK_INSERTION, STRING_FOR_TYPE_STOCK_INSERTION_FROM_OTHER_SECURITIES_FIRM]
+        return transaction_type == STRING_FOR_TYPE_STOCK_INSERTION_FROM_OTHER_SECURITIES_FIRM
 
-    def _is_transaction_type_stock_deletion(self, transaction_type: str) -> bool:
-        STRING_FOR_TYPE_STOCK_DELETION = "대체출고"
+    def _is_transaction_type_stock_deletion_from_other_securities_firm(self, transaction_type: str) -> bool:
         STRING_FOR_TYPE_STOCK_DELETION_TO_OTHER_SECURITIES_FIRM = "타사대체출고"
-        return transaction_type in [STRING_FOR_TYPE_STOCK_DELETION, STRING_FOR_TYPE_STOCK_DELETION_TO_OTHER_SECURITIES_FIRM]
+        return transaction_type == STRING_FOR_TYPE_STOCK_DELETION_TO_OTHER_SECURITIES_FIRM
 
-    def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
+    def _is_transaction_type_stock_split_merge_insertion(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION = "액면분할병합입고"
+        return transaction_type == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION
+
+    def _is_transaction_type_stock_split_merge_deletion(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION = "액면분할병합출고"
+        return transaction_type == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION
+
+    def _is_transaction_type_inbound_transfer_resulted_from_event(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = "이벤트입고"
+        return transaction_type == STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
+
+    def _get_list_of_simple_transactions_from_stream(self, input_stream, account, symbol_config: symbol_config.SymbolConfig) -> list[SimpleTransaction]:
         list_of_simple_transactions = []
         EXPECTED_COLUMN_LENGTH = 37
         CONST_OPEN_DATE_COLUMN = 1
@@ -132,9 +145,6 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
         CONST_OPEN_PRICE_COLUMN = 9
         CONST_PURE_COMMISSION_COLUMN = 13
         CONST_TAX_COLUMN = 14
-        STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION = "액면분할병합입고"  # @FIXME(dennis.oh) Confirm this string is used or not.
-        STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION = "액면분할병합출고"  # @FIXME(dennis.oh) Confirm this string is used or not.
-        STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = "이벤트입고"  # @FIXME(dennis.oh) Confirm this string is used or not.
         reader = csv.reader(input_stream, delimiter=",")
         # FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
         num_row_read = 0
@@ -186,18 +196,6 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
 
             transaction = SimpleTransaction()
 
-            transaction.account = account
-            transaction.open_date = open_date
-
-            transaction.symbol = self._get_transaction_symbol_from_input_row(input_row)
-            transaction.amount = float(input_row[CONST_AMOUNT_COLUMN].replace(",", ""))
-            transaction.open_price = float(input_row[CONST_OPEN_PRICE_COLUMN].replace(",", ""))
-
-            pure_commission = input_row[CONST_PURE_COMMISSION_COLUMN]
-            tax = input_row[CONST_TAX_COLUMN]
-            total_commission = float(pure_commission) + float(tax)
-            transaction.commission = float("%.2f" % total_commission)
-
             transaction_type = input_row[CONST_TRANSACTION_TYPE_COLUMN].strip()
 
             if self._is_transaction_type_sell(transaction_type):
@@ -208,31 +206,54 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY
                 )
-            elif transaction_type == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION:
+            elif self._is_transaction_type_stock_split_merge_insertion(transaction_type):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
                 )
-            elif transaction_type == STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION:
+            elif self._is_transaction_type_stock_split_merge_deletion(transaction_type):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
                 )
-            elif transaction_type == STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
+            elif self._is_transaction_type_inbound_transfer_resulted_from_event(transaction_type):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
                 )
-            elif self._is_transaction_type_stock_insertion(transaction_type):
+            elif self._is_transaction_type_stock_insertion_from_other_securities_firm(transaction_type):
                 transaction.transaction_type = (
-                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
+                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM
                 )
-            elif self._is_transaction_type_stock_deletion(transaction_type):
+            elif self._is_transaction_type_stock_deletion_from_other_securities_firm(transaction_type):
                 transaction.transaction_type = (
-                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
+                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM
                 )
             else:
                 # Continue with the for loop, It means the other transaction except types above.
                 # i.e. Dividend
                 # i.e. A header line
                 continue
+
+
+
+            transaction.account = account
+            transaction.open_date = open_date
+
+            CONST_SYMBOL_COLUMN = 5
+
+            raw_symbol_input = input_row[CONST_SYMBOL_COLUMN]
+            original_namespace = self.securities_firm_id
+            (legit_namespace, legit_symbol) = symbol_config.get_namespace_and_symbol_by_raw_input(original_namespace, raw_symbol_input)
+            transaction.namespace = legit_namespace
+            transaction.symbol = legit_symbol
+
+            transaction.amount = float(input_row[CONST_AMOUNT_COLUMN].replace(",", ""))
+            transaction.open_price = float(input_row[CONST_OPEN_PRICE_COLUMN].replace(",", ""))
+
+            pure_commission = input_row[CONST_PURE_COMMISSION_COLUMN]
+            tax = input_row[CONST_TAX_COLUMN]
+            total_commission = float(pure_commission) + float(tax)
+            transaction.commission = float("%.2f" % total_commission)
+
+
 
             transactions_of_current_date.append(transaction)
 
@@ -243,20 +264,3 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
             )
 
         return list_of_simple_transactions
-
-    def _get_transaction_symbol_from_input_row(self, input_row) -> str:
-        """
-        Get the transaction symbol from the input row.
-        Args:
-            input_row: A list of strings representing a row from the input CSV.
-        Returns:
-            The transaction symbol as a string.
-        """
-        # For Meritz, we will use the "종목코드" (index 5) as the symbol.
-        CONST_SYMBOL_COLUMN = 5
-        raw_symbol = input_row[CONST_SYMBOL_COLUMN].strip()
-        pattern = re.compile(r"(\w+)\.OQ")
-        matched = pattern.match(raw_symbol)
-        if matched:
-            return matched.group(1)
-        return raw_symbol

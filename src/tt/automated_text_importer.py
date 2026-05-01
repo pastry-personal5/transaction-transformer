@@ -3,12 +3,14 @@ from typing import List, Tuple
 
 from loguru import logger
 
+from tt import symbol_config
 from tt.automated_text_importer_base import AutomatedTextImporterBase
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.kiwoom_text_importer import KiwoomTextImporter
 from tt.meritz_text_importer import MeritzTextImporter
 from tt.shinhan_text_importer import ShinhanTextImporter
 from tt.simple_transaction import SimpleTransaction
+from tt.symbol_config import SymbolConfig
 
 
 class AutomatedTextImporterFactory:
@@ -36,10 +38,10 @@ class AutomatedTextImporterControl:
     def load_module_config(self) -> None:
         self.module_config = AutomatedTextImporterHelper.load_module_config()
 
-    def import_all_transactions(self) -> Tuple[bool, List[SimpleTransaction]]:
-        return self._import_transactions_from_local_file_system()
+    def import_all_transactions(self, symbol_config: SymbolConfig) -> Tuple[bool, List[SimpleTransaction]]:
+        return self._import_transactions_from_local_file_system(symbol_config)
 
-    def _import_transactions_from_local_file_system(self) -> Tuple[bool, List[SimpleTransaction]]:
+    def _import_transactions_from_local_file_system(self, symbol_config: SymbolConfig) -> Tuple[bool, List[SimpleTransaction]]:
         """Import transaction from local file system.
 
         Returns:
@@ -55,7 +57,7 @@ class AutomatedTextImporterControl:
 
             (result, concatenated_file_meta) = importer.concat_and_cleanup_local_files_if_needed()
             if result and concatenated_file_meta:
-                (result, list_of_simple_transactions) = importer.import_transactions(concatenated_file_meta)
+                (result, list_of_simple_transactions) = importer.import_transactions(concatenated_file_meta, symbol_config)
                 if result:
                     logger.info(f"Successfully imported transactions for {securities_firm_id}")
                     if index == 0:

@@ -5,7 +5,7 @@ from enum import Enum
 class SimpleTransaction:
 
     CORE_FIELD_LENGTH = 7  # The length of items - account, amount, open_date, etc.
-    NUMBER_OF_TYPES = 6  # Number of types. It includes the type 'other.'
+    NUMBER_OF_TYPES = 8  # Number of types. It includes the type 'other.'
 
     class SimpleTransactionTypeEnum(Enum):
         # Constants
@@ -15,6 +15,8 @@ class SimpleTransaction:
         TYPE_STOCK_SPLIT_MERGE_INSERTION = 3
         TYPE_STOCK_SPLIT_MERGE_DELETION = 4
         TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = 5
+        TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM = 6
+        TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM = 7
 
     def __init__(
         self,
@@ -25,6 +27,7 @@ class SimpleTransaction:
         open_date=datetime.date(1970, 1, 1),
         commission=0.0,
     ):
+        self.namespace = "" # string
         self.account = ""  # string
         self.amount = amount  # float
         self.commission = commission  # float
@@ -44,6 +47,8 @@ class SimpleTransaction:
             self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION,
             self.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION,
             self.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT,
+            self.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM,
+            self.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM,
         ]
         array_of_transaction_type_string = [
             "SELL",
@@ -51,6 +56,8 @@ class SimpleTransaction:
             "STOCK_SPLIT_MERGE_INSERTION",
             "STOCK_SPLIT_MERGE_DELETION",
             "INBOUND_TRANSFER_RESULTED_FROM_EVENT",
+            "STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM",
+            "STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM",
         ]
         assert SimpleTransaction.NUMBER_OF_TYPES - 1 == len(array_of_transaction_type)
         assert len(array_of_transaction_type) == len(array_of_transaction_type_string)
@@ -81,6 +88,14 @@ class SimpleTransaction:
         elif transaction_type_string == "INBOUND_TRANSFER_RESULTED_FROM_EVENT":
             return (
                 SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
+            )
+        elif transaction_type_string == "STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM":
+            return (
+                SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM
+            )
+        elif transaction_type_string == "STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM":
+            return (
+                SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM
             )
         elif transaction_type_string == "OTHER":
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_OTHER

@@ -92,6 +92,35 @@ class SimplePortfolio:
             self.p[symbol]["open_price"] = open_price  # float
             self.p[symbol]["open_date"] = open_date  # datetime.date
 
+    def record_stock_insertion_caused_by_other_securities_firm(self, transaction: SimpleTransaction):
+        symbol = transaction.symbol
+        amount = transaction.amount
+        open_price = transaction.open_price
+        open_date = transaction.open_date
+
+        if symbol in self.p:
+            self.p[symbol]["amount"] += amount  # float
+            self.p[symbol]["open_price"] = open_price  # float
+        else:
+            self.p[symbol] = {}
+            self.p[symbol]["amount"] = amount  # float
+            self.p[symbol]["open_price"] = open_price  # float
+            self.p[symbol]["open_date"] = open_date  # datetime.date
+
+    def record_stock_deletion_caused_by_other_securities_firm(self, transaction: SimpleTransaction):
+        symbol = transaction.symbol
+        amount = transaction.amount
+        open_price = transaction.open_price
+        open_date = transaction.open_date
+
+        if symbol in self.p:
+            self.p[symbol]["amount"] -= amount  # float
+        else:
+            self.p[symbol] = {}
+            self.p[symbol]["amount"] = amount  # float
+            self.p[symbol]["open_price"] = open_price  # float
+            self.p[symbol]["open_date"] = open_date  # datetime.date
+
     def record(self, transaction: SimpleTransaction):
         # Please note that, this class is building a portfolio. As that being said, TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT is a kind of TYPE_BUY here. That's meaning of 'or' here.
         if (
@@ -116,3 +145,13 @@ class SimplePortfolio:
             == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
         ):
             self.record_stock_split_merge_deletion(transaction)
+        elif (
+            transaction.transaction_type
+            == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM
+        ):
+            self.record_stock_insertion_caused_by_other_securities_firm(transaction)
+        elif (
+            transaction.transaction_type
+            == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM
+        ):
+            self.record_stock_deletion_caused_by_other_securities_firm(transaction)

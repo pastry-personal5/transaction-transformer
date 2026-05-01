@@ -4,6 +4,7 @@ import datetime
 from loguru import logger
 
 from tt.simple_portfolio import SimplePortfolio
+from tt.symbol_config import SymbolConfig
 
 
 def convert_python_date_to_us_date(src: datetime.date) -> str:
@@ -20,13 +21,14 @@ def convert_python_date_to_us_date(src: datetime.date) -> str:
     return dst
 
 
-def do_investing_dot_com_file_export_to_file(output_file, portfolio) -> None:
+def do_investing_dot_com_file_export_to_file(output_file, portfolio, symbol_config: SymbolConfig) -> None:
     """
     Export the given SimplePortfolio to a CSV file in the format used by investing.com.
 
     Args:
         output_file: The file object to write the CSV data to.
         portfolio: The SimplePortfolio object containing the portfolio data to export.
+        symbol_config: The symbol configuration object.
 
     Returns:
         None
@@ -51,7 +53,8 @@ def do_investing_dot_com_file_export_to_file(output_file, portfolio) -> None:
             output_row = {}
             output_row["Type"] = "Buy"
             output_row["Open Date"] = convert_python_date_to_us_date(p["open_date"])
-            output_row["Symbol/ISIN"] = key
+            (_, original_symbol) = symbol_config.get_original_namespace_and_symbol("investing_dot_com", key)
+            output_row["Symbol/ISIN"] = original_symbol
             output_row["Amount"] = p["amount"]
             output_row["Open Price"] = "%.4f" % p["open_price"]
             output_row["Commission"] = "%.2f" % 0.0

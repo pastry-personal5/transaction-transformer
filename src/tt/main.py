@@ -14,6 +14,7 @@ import click
 import yaml
 from loguru import logger
 
+from tt.constants import Constants
 import tt.kiwoom_text_importer
 from tt.automated_text_importer import AutomatedTextImporterControl
 from tt.bank_salad_expense_transaction import \
@@ -30,6 +31,7 @@ from tt.simple_transaction import SimpleTransaction
 from tt.simple_transaction_db_impl import SimpleTransactionDBImpl
 from tt.simple_transaction_text_printer_impl import \
     SimpleTransactionTextPrinterImpl
+from tt.symbol_config import SymbolConfig, SymbolConfigControl
 
 
 class GlobalObjectControl:
@@ -108,17 +110,23 @@ def auto():
     Import all transactions using automated text importer.
     """
     global global_object_control
-
-    control = AutomatedTextImporterControl()
-    control.load_module_config()
-    (result, list_of_simple_transactions) = control.import_all_transactions()
-    if not result or not list_of_simple_transactions:
-        sys.exit(-1)
-
-    global global_object_control
     if not global_object_control.global_db_connection.is_in_valid_state():
         logger.error("DB Connection is not valid. Please bootstrap first.")
         sys.exit(-1)
+
+    symbol_config_file_path = os.path.join(Constants.config_dir_path, "symbol_config.yaml")
+    symbol_config_control = SymbolConfigControl()
+    (result, symbol_config) = symbol_config_control.import_from_file(symbol_config_file_path)
+    if not result or symbol_config is None:
+        logger.error("Failed to import symbol configuration. Please check the log for details.")
+        sys.exit(-1)
+
+    control = AutomatedTextImporterControl()
+    control.load_module_config()
+    (result, list_of_simple_transactions) = control.import_all_transactions(symbol_config)
+    if not result or not list_of_simple_transactions:
+        sys.exit(-1)
+
     db_impl = SimpleTransactionDBImpl(global_object_control.global_db_connection)
     db_impl.export_all(list_of_simple_transactions)
 
@@ -129,7 +137,7 @@ def auto():
     portfolio = simple_portfolio_control.build_portfolio(
         list_of_simple_transactions, None
     )
-    simple_portfolio_control.do_investing_dot_com_portfolio_export(portfolio)
+    simple_portfolio_control.do_investing_dot_com_portfolio_export(portfolio, symbol_config)
 
 
 # <program> create kiwoom-transaction
@@ -175,7 +183,8 @@ def kiwoom_transaction(kiwoom_config, portfolio_snapshot_date: Optional[str]):
     try:
         list_of_simple_transactions = (
             tt.kiwoom_text_importer.build_list_of_simple_transactions(
-                kiwoom_config_file_path
+                kiwoom_config_file_path,
+                symbol_config
             )
         )
         if not list_of_simple_transactions:

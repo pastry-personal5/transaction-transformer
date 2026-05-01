@@ -70,6 +70,8 @@ class AutomatedTextImporterHelper():
         len_second = len(second)
         if len_second == 0:
             return first
+        if len_first == 0:
+            return second
         if second[0].open_date < first[0].open_date:
             return AutomatedTextImporterHelper.merge_simple_transactions(second, first)
         i = 0
@@ -122,6 +124,12 @@ class AutomatedTextImporterHelper():
                 t.transaction_type
                 == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
             ):
+                list_of_simple_transactions.append(t)
+        for t in transactions_of_current_date:
+            if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_INSERTION_CAUSED_BY_OTHER_SECURITIES_FIRM:
+                list_of_simple_transactions.append(t)
+        for t in transactions_of_current_date:
+            if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_DELETION_CAUSED_BY_OTHER_SECURITIES_FIRM:
                 list_of_simple_transactions.append(t)
         for t in transactions_of_current_date:
             if t.transaction_type == SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL:

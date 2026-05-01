@@ -9,6 +9,7 @@ from loguru import logger
 from tt.automated_text_importer_base import AutomatedTextImporterBase
 from tt.automated_text_importer_helper import AutomatedTextImporterHelper
 from tt.simple_transaction import SimpleTransaction
+from tt.symbol_config import SymbolConfig
 
 
 class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
@@ -16,7 +17,7 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
     def __init__(self):
         self.securities_firm_id = None
 
-    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]]) -> Tuple[bool, list[SimpleTransaction]]:
+    def import_transactions(self, concatenated_file_meta: list[tuple[str, str]], symbol_config: SymbolConfig) -> Tuple[bool, list[SimpleTransaction]]:
         """
         Subclasses may override this method.
         """
@@ -34,7 +35,7 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
             try:
                 transaction_file = open(transaction_filepath, newline="", encoding="euc-kr")
                 imported_list = self._get_list_of_simple_transactions_from_stream(
-                    transaction_file, account
+                    transaction_file, account, symbol_config
                 )
             except OSError as e:
                 logger.error(f"Failed to open transaction file: {transaction_filepath}, error: {e}")
@@ -124,7 +125,7 @@ class AutomatedTextImporterBaseImpl(AutomatedTextImporterBase):
         """
         pass
 
-    def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
+    def _get_list_of_simple_transactions_from_stream(self, input_stream, account, symbol_config: SymbolConfig):
         """
         Subclasses may override this method.
         """

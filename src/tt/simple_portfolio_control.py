@@ -8,6 +8,7 @@ import tt.investing_dot_com_text_exporter
 from tt.fact_data_control import FactDataControl
 from tt.simple_portfolio import SimplePortfolio
 from tt.simple_transaction import SimpleTransaction
+from tt.symbol_config import SymbolConfig
 from tt.yahoo_finance_web_exporter import YahooFinanceWebExporter
 
 
@@ -60,13 +61,13 @@ class SimplePortfolioControl:
             self._apply_stock_split(portfolio_snapshot_date, p)
         return p
 
-    def do_investing_dot_com_portfolio_export(self, portfolio: SimplePortfolio) -> None:
+    def do_investing_dot_com_portfolio_export(self, portfolio: SimplePortfolio, symbol_config: SymbolConfig) -> None:
         try:
             from tt.constants import Constants
             output_file_path = os.path.join(Constants.output_data_dir_path, "investing_dot_com_portfolio.txt")
             f = open(output_file_path, "w", encoding="utf-8")
             tt.investing_dot_com_text_exporter.do_investing_dot_com_file_export_to_file(
-                f, portfolio
+                f, portfolio, symbol_config
             )
             f.close()
         except IOError as e:
