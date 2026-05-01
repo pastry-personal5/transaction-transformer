@@ -6,6 +6,45 @@ As of 2025-11-27, it supports only overseas stock transactions.
 """
 
 # Fields:
+# "상품구분", 0
+# "거래일자", 1
+# "주문일자", 2
+# "거래구분", 3
+# "거래소", 4
+# "종목코드", 5
+# "종목명",
+# "통화",
+# "거래수량",
+# "거래단가(외화)",
+# "거래/정산금액", 10
+# "원화입출금액",
+# "매매금액(외화)",
+# "수수료(외화)",
+# "제비용(외화)",
+# "유가잔고", 15
+# "외화잔고",
+# "원화잔고",
+# "거래단가(원화)",
+# "매매금액(원화)",
+# "수수료(원화)", 20
+# "제비용(원화)",
+# "기준환율",
+# "거래번호",
+# "원거래번호",
+# "매체구분",
+# "관리점",
+# "대출이자",
+# "이자계산시작일",
+# "이자계산종료일",
+# "대출일자(질권설정일)",
+# "만기일자",
+# "대출전잔",
+# "대출금잔",
+# "대출금액",
+# "대출상환금액",
+# "미상환대출연체료"
+
+# Old fields:
 # "상품구분",
 # "거래일자",
 # "주문일자",
@@ -66,15 +105,35 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
     def concat_and_cleanup_local_files_if_needed(self) -> bool:
         return super().concat_and_cleanup_local_files_if_needed()
 
+    def _is_transaction_type_buy(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_BUY = "해외주식매수"
+        return transaction_type == STRING_FOR_TYPE_BUY
+
+    def _is_transaction_type_sell(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_SELL = "해외주식매도"
+        return transaction_type == STRING_FOR_TYPE_SELL
+
+    def _is_transaction_type_stock_insertion(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_STOCK_INSERTION = "대체입고"
+        STRING_FOR_TYPE_STOCK_INSERTION_FROM_OTHER_SECURITIES_FIRM = "타사대체입고"
+        return transaction_type in [STRING_FOR_TYPE_STOCK_INSERTION, STRING_FOR_TYPE_STOCK_INSERTION_FROM_OTHER_SECURITIES_FIRM]
+
+    def _is_transaction_type_stock_deletion(self, transaction_type: str) -> bool:
+        STRING_FOR_TYPE_STOCK_DELETION = "대체출고"
+        STRING_FOR_TYPE_STOCK_DELETION_TO_OTHER_SECURITIES_FIRM = "타사대체출고"
+        return transaction_type in [STRING_FOR_TYPE_STOCK_DELETION, STRING_FOR_TYPE_STOCK_DELETION_TO_OTHER_SECURITIES_FIRM]
+
     def _get_list_of_simple_transactions_from_stream(self, input_stream, account):
         list_of_simple_transactions = []
         EXPECTED_COLUMN_LENGTH = 37
-        STRING_FOR_TYPE_BUY = "해외주식매수"
-        STRING_FOR_TYPE_SELL = "해외주식매도"
+        CONST_OPEN_DATE_COLUMN = 1
+        CONST_TRANSACTION_TYPE_COLUMN = 3
+        CONST_AMOUNT_COLUMN = 8
+        CONST_OPEN_PRICE_COLUMN = 9
+        CONST_PURE_COMMISSION_COLUMN = 13
+        CONST_TAX_COLUMN = 14
         STRING_FOR_TYPE_STOCK_SPLIT_MERGE_INSERTION = "액면분할병합입고"  # @FIXME(dennis.oh) Confirm this string is used or not.
         STRING_FOR_TYPE_STOCK_SPLIT_MERGE_DELETION = "액면분할병합출고"  # @FIXME(dennis.oh) Confirm this string is used or not.
-        # STRING_FOR_TYPE_STOCK_INSERTION = "대체입고"  # @FIXME(dennis.oh) Confirm this string is used or not.
-        # STRING_FOR_TYPE_STOCK_DELETION = "대체출고"  # @FIXME(dennis.oh) Confirm this string is used or not.
         STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT = "이벤트입고"  # @FIXME(dennis.oh) Confirm this string is used or not.
         reader = csv.reader(input_stream, delimiter=",")
         # FIELDNAMES = ['Open Date', 'Symbol/ISIN', 'Type', 'Amount', 'Open Price', 'Commission']
@@ -102,7 +161,7 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
                 )
                 logger.warning(f"Input was: {input_row}")
             try:
-                open_date = datetime.strptime(input_row[2], "%Y-%m-%d").date()
+                open_date = datetime.strptime(input_row[CONST_OPEN_DATE_COLUMN], "%Y-%m-%d").date()
             except ValueError:
                 logger.warning("A malformed date string has been found.")
                 logger.warning("An input was: %s" % str(input_row))
@@ -131,21 +190,21 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
             transaction.open_date = open_date
 
             transaction.symbol = self._get_transaction_symbol_from_input_row(input_row)
-            transaction.amount = float(input_row[8].replace(",", ""))
-            transaction.open_price = float(input_row[9].replace(",", ""))
+            transaction.amount = float(input_row[CONST_AMOUNT_COLUMN].replace(",", ""))
+            transaction.open_price = float(input_row[CONST_OPEN_PRICE_COLUMN].replace(",", ""))
 
-            pure_commission = input_row[13]
-            tax = input_row[14]
+            pure_commission = input_row[CONST_PURE_COMMISSION_COLUMN]
+            tax = input_row[CONST_TAX_COLUMN]
             total_commission = float(pure_commission) + float(tax)
             transaction.commission = float("%.2f" % total_commission)
 
-            transaction_type = input_row[3].strip()
+            transaction_type = input_row[CONST_TRANSACTION_TYPE_COLUMN].strip()
 
-            if transaction_type == STRING_FOR_TYPE_SELL:
+            if self._is_transaction_type_sell(transaction_type):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_SELL
                 )
-            elif transaction_type== STRING_FOR_TYPE_BUY:
+            elif self._is_transaction_type_buy(transaction_type):
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_BUY
                 )
@@ -160,6 +219,14 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
             elif transaction_type == STRING_FOR_TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT:
                 transaction.transaction_type = (
                     SimpleTransaction.SimpleTransactionTypeEnum.TYPE_INBOUND_TRANSFER_RESULTED_FROM_EVENT
+                )
+            elif self._is_transaction_type_stock_insertion(transaction_type):
+                transaction.transaction_type = (
+                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_INSERTION
+                )
+            elif self._is_transaction_type_stock_deletion(transaction_type):
+                transaction.transaction_type = (
+                    SimpleTransaction.SimpleTransactionTypeEnum.TYPE_STOCK_SPLIT_MERGE_DELETION
                 )
             else:
                 # Continue with the for loop, It means the other transaction except types above.
@@ -186,7 +253,8 @@ class MeritzTextImporter(AutomatedTextImporterBaseImpl):
             The transaction symbol as a string.
         """
         # For Meritz, we will use the "종목코드" (index 5) as the symbol.
-        raw_symbol = input_row[5].strip()
+        CONST_SYMBOL_COLUMN = 5
+        raw_symbol = input_row[CONST_SYMBOL_COLUMN].strip()
         pattern = re.compile(r"(\w+)\.OQ")
         matched = pattern.match(raw_symbol)
         if matched:

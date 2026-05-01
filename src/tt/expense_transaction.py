@@ -164,7 +164,7 @@ class ExpenseTransactionControl:
         logger.info(f"The length of list_to_return is ({len_of_list_to_return})")
         return list_to_return
 
-    def _load_conversion_rule(self):
+    def _load_conversion_rule(self) -> dict | None:
         from tt.constants import Constants
         conversion_rule_file_path = os.path.join(
             Constants.config_dir_path, "conversion_rule.yaml"
@@ -271,6 +271,9 @@ class ExpenseTransactionControl:
         if not list_of_bank_salad_expense_transaction:
             return False
         # Convert
+        if not self.conversion_rule:
+            logger.error("conversion_rule is not loaded.")
+            return False
         list_of_expense_transaction = self._convert(
             list_of_bank_salad_expense_transaction, self.conversion_rule
         )
