@@ -12,11 +12,12 @@ class SimplePortfolio:
 
     def __str__(self):
         to_return = ""
-        for item in self.p.items():
-            symbol = item["symbol"]
-            amount = item["amount"]
-            open_price = item["open_price"]
-            open_date = item["open_date"]
+        for key, val in self.p.items():
+            symbol = key
+            field_value_dict = val
+            amount = field_value_dict["amount"]
+            open_price = field_value_dict["open_price"]
+            open_date = field_value_dict["open_date"]
             to_return += f"symbol({symbol}) amount({amount}) open_price({open_price}) open_date({open_date})"
             to_return += "\n"
         return to_return

@@ -84,3 +84,5 @@ class SimpleTransaction:
             )
         elif transaction_type_string == "OTHER":
             return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_OTHER
+        else:
+            return SimpleTransaction.SimpleTransactionTypeEnum.TYPE_OTHER
